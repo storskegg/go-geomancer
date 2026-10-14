@@ -3,6 +3,7 @@ package cli
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -11,6 +12,7 @@ import (
 	"github.com/charmbracelet/colorprofile"
 	"github.com/spf13/cobra"
 
+	"github.com/storskegg/go-geomancer/internal/cli/input"
 	"github.com/storskegg/go-geomancer/system"
 )
 
@@ -50,6 +52,9 @@ func NewCommand() *cobra.Command {
 func Execute() int {
 	cmd := NewCommand()
 	if err := cmd.Execute(); err != nil {
+		if errors.Is(err, input.ErrAborted) {
+			return 130 // conventional exit code for an interrupted command
+		}
 		_, _ = fmt.Fprintln(cmd.ErrOrStderr(), "Error:", err)
 		return 1
 	}

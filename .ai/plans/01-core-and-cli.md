@@ -207,7 +207,7 @@ cover only the confirmed mappings.
 ## CLI (`cmd/geomancer`)
 
 ```
-geomancer cast M1 M2 M3 M4 [--nephews]  # Shield + Astrological Square
+geomancer cast [M1 M2 M3 M4] [--nephews]  # Shield + Astrological Square; prompts if no args
 geomancer figures                       # table of all 16 figures + meta
 geomancer figure  <name|pattern>        # detail view incl. house meanings
 geomancer systems                       # list registered systems
@@ -216,10 +216,13 @@ Global flags: -s/--system (default traditional), --json, --color auto|always|nev
 ```
 
 - **Input:** `internal/cli/input` defines `type MothersSource interface { Mothers() ([4]figure.Figure, error) }`.
-  v1 implements only `input.Args`: four positional arguments, each a pattern (`1212`), parities
-  (`odd,even,odd,even`) or a name. (This replaced the planned comma-separated `--mothers`
-  flag, which clashed with the parity form.) Random generation, mark-counting and interactive
-  entry can be added later as further implementations without touching the core.
+  - `input.Prompt` (default): one huh v2 select per Mother, scrollable, with typeahead filtering on
+    by name or pattern and a dot preview of the highlighted figure. Shift+Tab goes back. It draws
+    on stderr, so `cast --json > file` stays clean. `ACCESSIBLE=1` switches to numbered,
+    line-based prompts. Without arguments and outside a terminal, `cast` fails with a hint.
+  - `input.Args`: four positional arguments, each a pattern (`1212`), parities
+    (`odd,even,odd,even`) or a name. Kept for scripts and tests.
+  - Random generation and mark-counting can be added later as further implementations.
 - **Rendering (Lip Gloss v2, `internal/cli/render`):**
   - Shield in the traditional layout: Mothers and Daughters across the top read right to left
     (M1 at the far right), Nieces below, then the Witnesses, with the Judge centred and JM to its

@@ -19,13 +19,20 @@ var update = flag.Bool("update", false, "rewrite golden files")
 
 func run(t *testing.T, args ...string) (string, error) {
 	t.Helper()
+	stdout, _, err := runWithInput(t, "", args...)
+	return stdout, err
+}
+
+func runWithInput(t *testing.T, stdin string, args ...string) (stdout, stderr string, err error) {
+	t.Helper()
 	cmd := NewCommand()
-	var out bytes.Buffer
+	var out, errOut bytes.Buffer
+	cmd.SetIn(strings.NewReader(stdin))
 	cmd.SetOut(&out)
-	cmd.SetErr(&out)
+	cmd.SetErr(&errOut)
 	cmd.SetArgs(args)
-	err := cmd.Execute()
-	return out.String(), err
+	err = cmd.Execute()
+	return out.String(), errOut.String(), err
 }
 
 // trimLines drops trailing spaces, which Lip Gloss uses to pad blocks to a
@@ -92,6 +99,25 @@ func TestCastJSONMatchesCore(t *testing.T) {
 	}
 }
 
+// The prompts go to stderr, leaving stdout with only the reading.
+func TestCastPromptAccessible(t *testing.T) {
+	t.Setenv("ACCESSIBLE", "1")
+	stdout, stderr, err := runWithInput(t, "6\n8\n1\n2\n", "cast", "--json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var r chart.Reading
+	if err := json.Unmarshal([]byte(stdout), &r); err != nil {
+		t.Fatalf("stdout is not a reading: %v\n%s", err, stdout)
+	}
+	if got := r.Shield.Mothers; got[0].Name() != "Amissio" || got[3].Name() != "Populus" {
+		t.Errorf("mothers = %v", got)
+	}
+	if !strings.Contains(stderr, "Mother 1 (M1)") {
+		t.Errorf("stderr lacks the prompt:\n%s", stderr)
+	}
+}
+
 var ansi = regexp.MustCompile("\x1b\\[")
 
 func TestColor(t *testing.T) {
@@ -116,7 +142,8 @@ func TestErrors(t *testing.T) {
 		args []string
 		want string
 	}{
-		{[]string{"cast", "1212"}, "accepts 4 arg(s)"},
+		{[]string{"cast", "1212"}, "expected 4 mothers or none to choose them interactively, got 1"},
+		{[]string{"cast"}, "not running in a terminal"},
 		{[]string{"cast", "1212", "1212", "1212", "9999"}, `mother M4: figure: invalid figure: "9999"`},
 		{[]string{"cast", "-s", "nope", "1212", "1212", "1212", "1212"}, `unknown system "nope" (available: goldendawn, traditional)`},
 		{[]string{"figure", "nobody"}, `invalid figure: "nobody"`},
