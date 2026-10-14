@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"strconv"
 	"strings"
 
 	tea "charm.land/bubbletea/v2"
@@ -11,6 +12,8 @@ import (
 
 	"github.com/storskegg/go-geomancer/figure"
 	"github.com/storskegg/go-geomancer/internal/cli/render"
+	"github.com/storskegg/go-geomancer/position"
+	"github.com/storskegg/go-geomancer/system"
 )
 
 // ErrAborted is returned when the user cancels a prompt.
@@ -24,6 +27,10 @@ type Prompt struct {
 	// Accessible replaces the interactive select with numbered, line-based
 	// prompts suitable for screen readers.
 	Accessible bool
+	// If Systems is non-empty, the user first chooses one of them. System
+	// holds the initial choice and receives the final one.
+	Systems []system.System
+	System  *system.System
 }
 
 var ordinals = [4]string{"first", "second", "third", "fourth"}
@@ -37,7 +44,12 @@ func (p Prompt) Mothers() ([4]figure.Figure, error) {
 	if p.Accessible {
 		in = byteReader{in}
 	}
-	form := newForm(&m, p.Accessible).WithInput(in).WithOutput(p.Out)
+	var groups []*huh.Group
+	if len(p.Systems) > 0 {
+		groups = append(groups, systemGroup(p.System, p.Systems, p.Accessible))
+	}
+	groups = append(groups, motherGroups(&m, p.Accessible)...)
+	form := newForm(groups...).WithAccessible(p.Accessible).WithInput(in).WithOutput(p.Out)
 	if err := form.Run(); err != nil {
 		if errors.Is(err, huh.ErrUserAborted) {
 			return m, ErrAborted
@@ -47,8 +59,48 @@ func (p Prompt) Mothers() ([4]figure.Figure, error) {
 	return m, nil
 }
 
-// newForm builds a form with one select per Mother, writing choices to m.
-func newForm(m *[4]figure.Figure, accessible bool) *huh.Form {
+func newForm(groups ...*huh.Group) *huh.Form {
+	return huh.NewForm(groups...).WithTheme(huh.ThemeFunc(huh.ThemeBase16))
+}
+
+// systemGroup offers a choice of systems, writing the choice to sys.
+func systemGroup(sys *system.System, systems []system.System, accessible bool) *huh.Group {
+	options := make([]huh.Option[system.System], 0, len(systems))
+	for _, s := range systems {
+		options = append(options, huh.NewOption(s.Name(), s))
+	}
+	if *sys == nil {
+		*sys = systems[0]
+	}
+	sel := huh.NewSelect[system.System]().
+		Title("System").
+		Options(options...).
+		Value(sys)
+	if accessible {
+		sel.Description("Choose the system of correspondences.")
+	} else {
+		sel.DescriptionFunc(func() string { return describeSystem(*sys) }, sys)
+	}
+	return huh.NewGroup(sel)
+}
+
+// describeSystem summarises how a system differs: its segment elements and
+// where it places the Mothers.
+func describeSystem(s system.System) string {
+	segs := make([]string, 0, 4)
+	for _, seg := range figure.Segments() {
+		segs = append(segs, fmt.Sprintf("%v %v", seg, s.SegmentElement(seg)))
+	}
+	houses := make([]string, 0, 4)
+	for _, p := range []position.Position{position.M1, position.M2, position.M3, position.M4} {
+		h, _ := s.House(p)
+		houses = append(houses, strconv.Itoa(h))
+	}
+	return strings.Join(segs, " · ") + "\nMothers in houses " + strings.Join(houses, ", ")
+}
+
+// motherGroups builds one select per Mother, writing choices to m.
+func motherGroups(m *[4]figure.Figure, accessible bool) []*huh.Group {
 	all := figure.All()
 	options := make([]huh.Option[figure.Figure], 0, len(all))
 	for _, f := range all {
@@ -79,10 +131,7 @@ func newForm(m *[4]figure.Figure, accessible bool) *huh.Form {
 			Description(fmt.Sprintf("Choose the %s Mother. Type to filter by name or pattern.", ordinals[i]))
 		groups = append(groups, huh.NewGroup(note, followSelect{sel, &m[i]}))
 	}
-
-	return huh.NewForm(groups...).
-		WithTheme(huh.ThemeFunc(huh.ThemeBase16)).
-		WithAccessible(accessible)
+	return groups
 }
 
 // followSelect keeps the bound value on the hovered option. huh's Select

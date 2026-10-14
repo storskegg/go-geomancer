@@ -2,6 +2,8 @@
   "name": "Puer",
   "pattern": "1121",
   "planet": "Mars",
+  "sign": "Aries",
+  "element": "Fire",
   "dots": 5,
   "oddDots": 3,
   "evenDots": 2,

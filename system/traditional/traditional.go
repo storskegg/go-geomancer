@@ -30,9 +30,10 @@ var System system.System = &system.Mapping{
 
 // signs gives each figure its zodiacal sign.
 //
-// TODO: confirm which table "traditional" uses and fill this in. Until then
-// the Astrological Square has no signs under this system. One candidate,
-// recalled from Gerard of Cremona and NOT verified against a source:
+// TODO: confirm the traditional table and update this. Until then it copies
+// the Golden Dawn table (see system/goldendawn), which follows planetary
+// rulership. One candidate traditional table, recalled from Gerard of
+// Cremona and NOT verified against a source:
 //
 //	Acquisitio: Aries        Puella: Libra
 //	Laetitia: Taurus         Tristitia: Scorpio
@@ -43,11 +44,44 @@ var System system.System = &system.Mapping{
 //	Albus: Cancer            Conjunctio: Virgo or Pisces (unsure)
 //	Via: Leo
 //	Caput Draconis: Virgo
-var signs = map[figure.Figure]zodiac.Sign{}
+var signs = map[figure.Figure]zodiac.Sign{
+	figure.Puer:         zodiac.Aries,
+	figure.Amissio:      zodiac.Taurus,
+	figure.Albus:        zodiac.Gemini,
+	figure.Populus:      zodiac.Cancer,
+	figure.Via:          zodiac.Cancer,
+	figure.FortunaMajor: zodiac.Leo,
+	figure.FortunaMinor: zodiac.Leo,
+	figure.Conjunctio:   zodiac.Virgo,
+	figure.Puella:       zodiac.Libra,
+	figure.Rubeus:       zodiac.Scorpio,
+	figure.Acquisitio:   zodiac.Sagittarius,
+	figure.Carcer:       zodiac.Capricorn,
+	figure.Tristitia:    zodiac.Aquarius,
+	figure.Laetitia:     zodiac.Pisces,
+}
 
 // elements gives each figure its element.
 //
-// TODO: fill in from the preferred source.
-var elements = map[figure.Figure]zodiac.Element{}
+// TODO: confirm the traditional table and update this. Until then it copies
+// the Golden Dawn table (see system/goldendawn).
+var elements = map[figure.Figure]zodiac.Element{
+	figure.Puer:          zodiac.Fire,
+	figure.Amissio:       zodiac.Earth,
+	figure.Albus:         zodiac.Air,
+	figure.Populus:       zodiac.Water,
+	figure.Via:           zodiac.Water,
+	figure.FortunaMajor:  zodiac.Fire,
+	figure.FortunaMinor:  zodiac.Fire,
+	figure.Conjunctio:    zodiac.Earth,
+	figure.Puella:        zodiac.Air,
+	figure.Rubeus:        zodiac.Water,
+	figure.Acquisitio:    zodiac.Fire,
+	figure.Carcer:        zodiac.Earth,
+	figure.Tristitia:     zodiac.Air,
+	figure.Laetitia:      zodiac.Water,
+	figure.CaputDraconis: zodiac.Earth,
+	figure.CaudaDraconis: zodiac.Fire,
+}
 
 func init() { system.Register(System) }

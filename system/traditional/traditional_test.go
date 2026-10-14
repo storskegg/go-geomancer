@@ -42,3 +42,17 @@ func TestHouses(t *testing.T) {
 		}
 	}
 }
+
+// Every figure has an element, and every figure but the lunar nodes has a
+// sign.
+func TestFigureTablesComplete(t *testing.T) {
+	for _, f := range figure.All() {
+		_, hasSign := System.Sign(f)
+		if node := f == figure.CaputDraconis || f == figure.CaudaDraconis; hasSign == node {
+			t.Errorf("%v: has sign = %v, want %v", f, hasSign, !node)
+		}
+		if _, ok := System.Element(f); !ok {
+			t.Errorf("%v has no element", f)
+		}
+	}
+}

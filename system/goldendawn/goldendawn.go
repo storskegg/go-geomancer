@@ -28,15 +28,51 @@ var System system.System = &system.Mapping{
 	Elements: elements,
 }
 
-// signs gives each figure its zodiacal sign.
+// signs gives each figure the sign ruled by its planet, one figure per sign
+// with the Moon's and the Sun's pairs sharing Cancer and Leo.
 //
-// TODO: fill in. Until then the Astrological Square has no signs under this
-// system.
-var signs = map[figure.Figure]zodiac.Sign{}
+// TODO: verify against the preferred Golden Dawn source. Caput Draconis and
+// Cauda Draconis are commonly given no sign; when one falls in the 1st House
+// the Astrological Square has no signs.
+var signs = map[figure.Figure]zodiac.Sign{
+	figure.Puer:         zodiac.Aries,
+	figure.Amissio:      zodiac.Taurus,
+	figure.Albus:        zodiac.Gemini,
+	figure.Populus:      zodiac.Cancer,
+	figure.Via:          zodiac.Cancer,
+	figure.FortunaMajor: zodiac.Leo,
+	figure.FortunaMinor: zodiac.Leo,
+	figure.Conjunctio:   zodiac.Virgo,
+	figure.Puella:       zodiac.Libra,
+	figure.Rubeus:       zodiac.Scorpio,
+	figure.Acquisitio:   zodiac.Sagittarius,
+	figure.Carcer:       zodiac.Capricorn,
+	figure.Tristitia:    zodiac.Aquarius,
+	figure.Laetitia:     zodiac.Pisces,
+}
 
-// elements gives each figure its element.
+// elements gives each figure the element of its sign, with Earth for Caput
+// Draconis and Fire for Cauda Draconis.
 //
-// TODO: fill in.
-var elements = map[figure.Figure]zodiac.Element{}
+// TODO: verify against the preferred Golden Dawn source. These were derived
+// from the signs above rather than taken from a published table.
+var elements = map[figure.Figure]zodiac.Element{
+	figure.Puer:          zodiac.Fire,
+	figure.Amissio:       zodiac.Earth,
+	figure.Albus:         zodiac.Air,
+	figure.Populus:       zodiac.Water,
+	figure.Via:           zodiac.Water,
+	figure.FortunaMajor:  zodiac.Fire,
+	figure.FortunaMinor:  zodiac.Fire,
+	figure.Conjunctio:    zodiac.Earth,
+	figure.Puella:        zodiac.Air,
+	figure.Rubeus:        zodiac.Water,
+	figure.Acquisitio:    zodiac.Fire,
+	figure.Carcer:        zodiac.Earth,
+	figure.Tristitia:     zodiac.Air,
+	figure.Laetitia:      zodiac.Water,
+	figure.CaputDraconis: zodiac.Earth,
+	figure.CaudaDraconis: zodiac.Fire,
+}
 
 func init() { system.Register(System) }

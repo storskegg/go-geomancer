@@ -13,6 +13,7 @@ import (
 	"github.com/storskegg/go-geomancer/chart"
 	"github.com/storskegg/go-geomancer/internal/cli/input"
 	"github.com/storskegg/go-geomancer/internal/cli/render"
+	"github.com/storskegg/go-geomancer/system"
 )
 
 func newCastCommand(opts *options) *cobra.Command {
@@ -22,9 +23,9 @@ func newCastCommand(opts *options) *cobra.Command {
 		Short: "Cast the Shield and Astrological Square from four Mothers",
 		Long: `Cast the Shield and Astrological Square from four Mothers.
 
-With no arguments, you are prompted to choose each Mother from a list;
-type to filter it by name or dot pattern. Set ACCESSIBLE=1 for numbered,
-line-based prompts instead.
+With no arguments, you are prompted to choose the system (unless --system
+is given) and then each Mother from a list; type to filter it by name or
+dot pattern. Set ACCESSIBLE=1 for numbered, line-based prompts instead.
 
 The Mothers may also be given as arguments, each as a dot pattern read
 head to feet ("1212"), as parities ("odd,even,odd,even"), or by name
@@ -43,7 +44,7 @@ head to feet ("1212"), as parities ("odd,even,odd,even"), or by name
 			if err != nil {
 				return err
 			}
-			src, err := mothersSource(cmd, args)
+			src, err := mothersSource(cmd, args, &sys)
 			if err != nil {
 				return err
 			}
@@ -70,20 +71,21 @@ head to feet ("1212"), as parities ("odd,even,odd,even"), or by name
 }
 
 // mothersSource reads the Mothers from args if given, and otherwise prompts
-// for them. The prompt draws on stderr so that stdout carries only the
-// reading, e.g. for --json.
-func mothersSource(cmd *cobra.Command, args []string) (input.MothersSource, error) {
+// for them, and for the system unless --system was given; the chosen system
+// is written to sys. The prompt draws on stderr so that stdout carries only
+// the reading, e.g. for --json.
+func mothersSource(cmd *cobra.Command, args []string, sys *system.System) (input.MothersSource, error) {
 	if len(args) > 0 {
 		return input.Args(args), nil
 	}
-	in, out := cmd.InOrStdin(), cmd.ErrOrStderr()
-	if os.Getenv("ACCESSIBLE") != "" {
-		return input.Prompt{In: in, Out: out, Accessible: true}, nil
-	}
-	if !isTerminal(in) || !isTerminal(out) {
+	p := input.Prompt{In: cmd.InOrStdin(), Out: cmd.ErrOrStderr(), Accessible: os.Getenv("ACCESSIBLE") != ""}
+	if !p.Accessible && (!isTerminal(p.In) || !isTerminal(p.Out)) {
 		return nil, errors.New("no mothers given and not running in a terminal; pass four mothers as arguments")
 	}
-	return input.Prompt{In: in, Out: out}, nil
+	if !cmd.Flags().Changed("system") {
+		p.Systems, p.System = system.List(), sys
+	}
+	return p, nil
 }
 
 func isTerminal(v any) bool {

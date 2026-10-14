@@ -11,6 +11,8 @@ import (
 	"github.com/charmbracelet/x/ansi"
 
 	"github.com/storskegg/go-geomancer/figure"
+	"github.com/storskegg/go-geomancer/system"
+	"github.com/storskegg/go-geomancer/zodiac"
 )
 
 func TestPromptAccessible(t *testing.T) {
@@ -29,6 +31,47 @@ func TestPromptAccessible(t *testing.T) {
 	}
 }
 
+func TestPromptAccessibleSystem(t *testing.T) {
+	a := testSystem("a", "Alpha")
+	b := testSystem("b", "Beta")
+	chosen := system.System(b)
+	var out bytes.Buffer
+	p := Prompt{
+		In: strings.NewReader("1\n6\n8\n1\n2\n"), Out: &out, Accessible: true,
+		Systems: []system.System{a, b}, System: &chosen,
+	}
+	got, err := p.Mothers()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if chosen != a {
+		t.Errorf("system = %v, want Alpha", chosen.Name())
+	}
+	if got[3] != figure.Populus {
+		t.Errorf("Mothers() = %v", got)
+	}
+	if !strings.Contains(out.String(), "1. Alpha") {
+		t.Errorf("output lacks the system prompt:\n%s", out.String())
+	}
+}
+
+func TestDescribeSystem(t *testing.T) {
+	got := describeSystem(testSystem("a", "Alpha"))
+	want := "Head Fire · Neck Air · Body Water · Feet Earth\nMothers in houses 1, 2, 3, 4"
+	if got != want {
+		t.Errorf("describeSystem =\n%s\nwant\n%s", got, want)
+	}
+}
+
+func testSystem(id, name string) *system.Mapping {
+	return &system.Mapping{
+		Slug:            id,
+		Title:           name,
+		SegmentElements: [4]zodiac.Element{zodiac.Fire, zodiac.Air, zodiac.Water, zodiac.Earth},
+		Houses:          [12]int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12},
+	}
+}
+
 // driver feeds key presses to a form and runs the commands it returns, so
 // the interactive select can be tested without a terminal.
 type driver struct {
@@ -37,7 +80,7 @@ type driver struct {
 }
 
 func newDriver(t *testing.T, m *[4]figure.Figure) *driver {
-	d := &driver{t: t, form: newForm(m, false)}
+	d := &driver{t: t, form: newForm(motherGroups(m, false)...)}
 	d.run(d.form.Init())
 	return d
 }

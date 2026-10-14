@@ -184,25 +184,19 @@ rather than YAML keeps the core free of third-party dependencies.
 `content.Default().For(figure.Figure)` returns the `Entry`. Loading checks that each of the 16
 figures appears exactly once. All text fields ship empty for you to write.
 
-## Traditional System Data — needs your confirmation
+## Figure Sign & Element Data — provisional
 
-Segment elements and house placement are confirmed above. **Figure→Sign and Figure→Element are not**:
-sources disagree, and I'm not confident enough to commit values without your source. There are two
-common sign tables:
+Both systems ship with complete tables, each marked `TODO` in the source for verification:
 
-- **Gerard of Cremona (medieval).** This is my recollection, *please verify*: Acquisitio–Aries,
-  Laetitia–Taurus, Amissio–Taurus, Fortuna Minor–Taurus, Puer–Gemini, Rubeus–Gemini,
-  Albus–Cancer, Via–Leo, Caput Draconis–Virgo, Puella–Libra, Tristitia–Scorpio,
-  Cauda Draconis–Sagittarius, Populus–Capricorn, Fortuna Major–Aquarius, Carcer–Pisces,
-  Conjunctio–Virgo or Pisces (unsure).
-- **Rulership-based (Agrippa / commonly given for Golden Dawn).** Puer–Aries, Amissio–Taurus,
-  Albus–Gemini, Populus & Via–Cancer, Fortuna Major & Minor–Leo, Conjunctio–Virgo, Puella–Libra,
-  Rubeus–Scorpio, Acquisitio–Sagittarius, Carcer–Capricorn, Tristitia–Aquarius, Laetitia–Pisces;
-  Caput/Cauda Draconis have no sign.
-
-**Action:** tell me which table "traditional" means (or paste yours), and the figure→element table
-you use. Until then the traditional system keeps these as clearly marked TODO tables, and tests
-cover only the confirmed mappings.
+- **Golden Dawn signs:** planetary rulership. Puer–Aries, Amissio–Taurus, Albus–Gemini,
+  Populus & Via–Cancer, Fortuna Major & Minor–Leo, Conjunctio–Virgo, Puella–Libra,
+  Rubeus–Scorpio, Acquisitio–Sagittarius, Carcer–Capricorn, Tristitia–Aquarius,
+  Laetitia–Pisces. Caput and Cauda Draconis have no sign, so when either is in the 1st House
+  the Square has no signs.
+- **Golden Dawn elements:** the element of each figure's sign, with Caput Draconis = Earth and
+  Cauda Draconis = Fire. These were derived, not taken from a published table.
+- **Traditional:** copies of both Golden Dawn tables until the traditional source is chosen.
+  A recalled, unverified Gerard of Cremona sign table is kept in a comment for reference.
 
 ## CLI (`cmd/geomancer`)
 
@@ -216,7 +210,8 @@ Global flags: -s/--system (default traditional), --json, --color auto|always|nev
 ```
 
 - **Input:** `internal/cli/input` defines `type MothersSource interface { Mothers() ([4]figure.Figure, error) }`.
-  - `input.Prompt` (default): one huh v2 select per Mother, scrollable, with typeahead filtering on
+  - `input.Prompt` (default): first a select for the System (skipped if `--system` is given;
+    shows each system's segment elements and Mother houses), then one huh v2 select per Mother, scrollable, with typeahead filtering on
     by name or pattern and a dot preview of the highlighted figure. Shift+Tab goes back. It draws
     on stderr, so `cast --json > file` stays clean. `ACCESSIBLE=1` switches to numbered,
     line-based prompts. Without arguments and outside a terminal, `cast` fails with a hint.
@@ -267,8 +262,7 @@ Milestones 1–6 are complete.
 
 ## Open Items
 
-1. Which figure→sign table "traditional" uses, and the figure→element table. *(blocks the
-   traditional sign/element data only; everything else can proceed)*
+1. Verify the provisional sign and element tables (see above), especially Traditional.
 2. Confirm the assumptions above: Figure/Position terms, JM in the Shield, planet intrinsic vs
    element system-owned.
-3. Mothers input methods beyond `--mothers`. *(not blocking)*
+3. Mothers input methods beyond the prompt and arguments. *(not blocking)*

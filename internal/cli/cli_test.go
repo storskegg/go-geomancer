@@ -102,7 +102,7 @@ func TestCastJSONMatchesCore(t *testing.T) {
 // The prompts go to stderr, leaving stdout with only the reading.
 func TestCastPromptAccessible(t *testing.T) {
 	t.Setenv("ACCESSIBLE", "1")
-	stdout, stderr, err := runWithInput(t, "6\n8\n1\n2\n", "cast", "--json")
+	stdout, stderr, err := runWithInput(t, "6\n8\n1\n2\n", "cast", "--json", "--system", "traditional")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -115,6 +115,29 @@ func TestCastPromptAccessible(t *testing.T) {
 	}
 	if !strings.Contains(stderr, "Mother 1 (M1)") {
 		t.Errorf("stderr lacks the prompt:\n%s", stderr)
+	}
+	if strings.Contains(stderr, "System") {
+		t.Errorf("prompted for the system despite --system:\n%s", stderr)
+	}
+}
+
+// Without --system, the system is chosen first.
+func TestCastPromptSystem(t *testing.T) {
+	t.Setenv("ACCESSIBLE", "1")
+	// Systems are listed by ID: 1 is goldendawn.
+	stdout, stderr, err := runWithInput(t, "1\n6\n8\n1\n2\n", "cast", "--json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var r chart.Reading
+	if err := json.Unmarshal([]byte(stdout), &r); err != nil {
+		t.Fatalf("stdout is not a reading: %v\n%s", err, stdout)
+	}
+	if r.System != "goldendawn" || r.Shield.Mothers[3].Name() != "Populus" {
+		t.Errorf("reading = %s, mothers %v", r.System, r.Shield.Mothers)
+	}
+	if !strings.Contains(stderr, "System") {
+		t.Errorf("stderr lacks the system prompt:\n%s", stderr)
 	}
 }
 

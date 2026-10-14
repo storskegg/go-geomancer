@@ -47,3 +47,33 @@ func TestHouses(t *testing.T) {
 		}
 	}
 }
+
+// Every figure has an element, and every figure but the lunar nodes has a
+// sign.
+func TestFigureTablesComplete(t *testing.T) {
+	for _, f := range figure.All() {
+		_, hasSign := System.Sign(f)
+		if node := f == figure.CaputDraconis || f == figure.CaudaDraconis; hasSign == node {
+			t.Errorf("%v: has sign = %v, want %v", f, hasSign, !node)
+		}
+		if _, ok := System.Element(f); !ok {
+			t.Errorf("%v has no element", f)
+		}
+	}
+}
+
+func TestSigns(t *testing.T) {
+	want := map[figure.Figure]zodiac.Sign{
+		figure.Puer: zodiac.Aries, figure.Amissio: zodiac.Taurus, figure.Albus: zodiac.Gemini,
+		figure.Populus: zodiac.Cancer, figure.Via: zodiac.Cancer,
+		figure.FortunaMajor: zodiac.Leo, figure.FortunaMinor: zodiac.Leo,
+		figure.Conjunctio: zodiac.Virgo, figure.Puella: zodiac.Libra, figure.Rubeus: zodiac.Scorpio,
+		figure.Acquisitio: zodiac.Sagittarius, figure.Carcer: zodiac.Capricorn,
+		figure.Tristitia: zodiac.Aquarius, figure.Laetitia: zodiac.Pisces,
+	}
+	for f, sign := range want {
+		if got, ok := System.Sign(f); !ok || got != sign {
+			t.Errorf("Sign(%v) = %v, %v, want %v", f, got, ok, sign)
+		}
+	}
+}
