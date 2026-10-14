@@ -137,4 +137,8 @@ Temporary Items
 # Build output
 /bin/
 /geomancer
+/geomancer-export
 /geomancerd
+
+# Default export output
+/readings.*
