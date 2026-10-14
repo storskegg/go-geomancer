@@ -172,21 +172,17 @@ otherwise House *n* gets `sign.Add(n-1)`.
 
 ### `content`
 
-Text is kept out of the code: an embedded data file (`content/data/en.yaml` or JSON) with one entry per
-figure:
+Text is kept out of the code in an embedded JSON file per locale, `content/data/en.json`. JSON
+rather than YAML keeps the core free of third-party dependencies.
 
-```yaml
-- figure: Acquisitio
-  short: ""          # qualitative one-liner
-  long: ""           # long description
-  houses:            # 1..12 qualitative meanings
-    1: ""
-    ...
+```json
+{"locale": "en", "figures": [
+  {"figure": "Acquisitio", "short": "", "long": "", "houses": {"1": "", "2": "", "...": ""}}
+]}
 ```
 
-`content.For(figure.Figure) Entry`. Keying the files by locale (`en`) keeps translation possible
-without committing to it. I'll fill in only the names (the planets are already in `figure`), and
-leave the text fields blank for you to write.
+`content.Default().For(figure.Figure)` returns the `Entry`. Loading checks that each of the 16
+figures appears exactly once. All text fields ship empty for you to write.
 
 ## Traditional System Data — needs your confirmation
 
@@ -211,24 +207,29 @@ cover only the confirmed mappings.
 ## CLI (`cmd/geomancer`)
 
 ```
-geomancer cast    --system traditional --mothers 1212,2112,1111,2221 [--nephews] [--json]
+geomancer cast M1 M2 M3 M4 [--nephews]  # Shield + Astrological Square
 geomancer figures                       # table of all 16 figures + meta
 geomancer figure  <name|pattern>        # detail view incl. house meanings
 geomancer systems                       # list registered systems
+
+Global flags: -s/--system (default traditional), --json, --color auto|always|never
 ```
 
 - **Input:** `internal/cli/input` defines `type MothersSource interface { Mothers() ([4]figure.Figure, error) }`.
-  v1 implements only `--mothers` (accepts patterns or names via `figure.Parse`). Random generation,
-  mark-counting and interactive entry can be added later as further implementations without
-  touching the core.
-- **Rendering (Lip Gloss):**
+  v1 implements only `input.Args`: four positional arguments, each a pattern (`1212`), parities
+  (`odd,even,odd,even`) or a name. (This replaced the planned comma-separated `--mothers`
+  flag, which clashed with the parity form.) Random generation, mark-counting and interactive
+  entry can be added later as further implementations without touching the core.
+- **Rendering (Lip Gloss v2, `internal/cli/render`):**
   - Shield in the traditional layout: Mothers and Daughters across the top read right to left
-    (M1 at the far right), Nieces below, then the Witnesses, with the Judge (and JM) at the bottom.
-    Odd = `●`, even = `● ●`.
-  - Square as a 3×4 grid of house cells (number, sign, figure glyph, name) to start. A
-    traditional square-chart drawing can come later.
+    (M1 at the far right), Nieces below, then the Witnesses, with the Judge centred and JM to its
+    right. Each figure is centred under the two it was summed from. 88 columns wide.
+  - Square as a 3×4 grid of bordered house cells (number, sign, glyph, name, position), also
+    88 columns wide. A traditional square-chart drawing can come later.
   - `--json` prints the `chart.Reading` so the CLI and API output can be compared.
-  - Colour degrades gracefully when there's no TTY (Lip Gloss handles this).
+  - Output goes through a `colorprofile` writer, so styling is stripped or downsampled
+    automatically. `--color` overrides that.
+- **Tests:** golden files in `internal/cli/testdata`; `make golden` rewrites them.
 
 ## API Server (outline only, later plan)
 
@@ -248,6 +249,8 @@ in the core, so the handlers are thin.
 - CLI: golden-file tests for the rendered output (with colours stripped) and for the JSON.
 
 ## Milestones
+
+Milestones 1–6 are complete.
 
 1. **Scaffold:** `go.mod` (go 1.27), the directory layout, `golangci-lint` config, a `Makefile`
    (`test`, `lint`, `build`).

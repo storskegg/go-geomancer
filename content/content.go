@@ -7,6 +7,7 @@
 package content
 
 import (
+	"bytes"
 	"embed"
 	"encoding/json"
 	"errors"
@@ -39,8 +40,7 @@ type Entry struct {
 	Figure figure.Figure `json:"figure"`
 	Short  string        `json:"short"`
 	Long   string        `json:"long"`
-	// Houses holds the figure's meaning in each house. Index i is House i+1.
-	Houses [12]string `json:"-"`
+	Houses Houses        `json:"houses"`
 }
 
 // House returns the figure's meaning in house n (1–12), or "" if n is out of
@@ -52,26 +52,11 @@ func (e Entry) House(n int) string {
 	return e.Houses[n-1]
 }
 
-// MarshalJSON encodes Houses as an object keyed "1" through "12", matching
-// the data files.
-func (e Entry) MarshalJSON() ([]byte, error) {
-	type plain Entry
-	houses := make(map[string]string, len(e.Houses))
-	for i, h := range e.Houses {
-		houses[strconv.Itoa(i+1)] = h
-	}
-	return json.Marshal(struct {
-		plain
-		Houses map[string]string `json:"houses"`
-	}{plain(e), houses})
-}
-
 func (e *Entry) UnmarshalJSON(b []byte) error {
 	type plain Entry
 	var raw struct {
 		plain
-		Figure *figure.Figure    `json:"figure"`
-		Houses map[string]string `json:"houses"`
+		Figure *figure.Figure `json:"figure"`
 	}
 	if err := json.Unmarshal(b, &raw); err != nil {
 		return err
@@ -81,12 +66,43 @@ func (e *Entry) UnmarshalJSON(b []byte) error {
 	}
 	*e = Entry(raw.plain)
 	e.Figure = *raw.Figure
-	for k, v := range raw.Houses {
-		n, err := strconv.Atoi(k)
-		if err != nil || n < 1 || n > len(e.Houses) {
-			return fmt.Errorf("%w: %v: house %q, want 1–12", ErrInvalid, e.Figure, k)
+	return nil
+}
+
+// Houses holds a figure's meaning in each house. Index i is House i+1. In
+// JSON it is an object keyed "1" through "12".
+type Houses [12]string
+
+// MarshalJSON writes the houses in numeric order, which a map would not.
+func (h Houses) MarshalJSON() ([]byte, error) {
+	var b bytes.Buffer
+	b.WriteByte('{')
+	for i, v := range h {
+		if i > 0 {
+			b.WriteByte(',')
 		}
-		e.Houses[n-1] = v
+		val, err := json.Marshal(v)
+		if err != nil {
+			return nil, err
+		}
+		fmt.Fprintf(&b, "%q:%s", strconv.Itoa(i+1), val)
+	}
+	b.WriteByte('}')
+	return b.Bytes(), nil
+}
+
+func (h *Houses) UnmarshalJSON(b []byte) error {
+	var m map[string]string
+	if err := json.Unmarshal(b, &m); err != nil {
+		return err
+	}
+	*h = Houses{}
+	for k, v := range m {
+		n, err := strconv.Atoi(k)
+		if err != nil || n < 1 || n > len(h) {
+			return fmt.Errorf("%w: house %q, want 1–12", ErrInvalid, k)
+		}
+		h[n-1] = v
 	}
 	return nil
 }

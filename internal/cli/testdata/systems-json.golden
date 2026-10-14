@@ -1,0 +1,22 @@
+[
+  {
+    "id": "goldendawn",
+    "name": "Golden Dawn",
+    "segments": {
+      "body": "Air",
+      "feet": "Earth",
+      "head": "Fire",
+      "neck": "Water"
+    }
+  },
+  {
+    "id": "traditional",
+    "name": "Traditional",
+    "segments": {
+      "body": "Water",
+      "feet": "Earth",
+      "head": "Fire",
+      "neck": "Air"
+    }
+  }
+]

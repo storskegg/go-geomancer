@@ -87,7 +87,7 @@ func TestEntryJSONRoundTrip(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(string(b), `"7":"seventh"`) || !strings.Contains(string(b), `"figure":"Puer"`) {
+	if !strings.Contains(string(b), `"houses":{"1":"","2":"",`) || !strings.Contains(string(b), `"7":"seventh"`) {
 		t.Errorf("Marshal = %s", b)
 	}
 	var out Entry
