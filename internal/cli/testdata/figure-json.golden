@@ -12,18 +12,18 @@
     "short": "",
     "long": "",
     "houses": {
-      "1": "",
-      "2": "",
-      "3": "",
-      "4": "",
-      "5": "",
-      "6": "",
-      "7": "",
-      "8": "",
-      "9": "",
-      "10": "",
-      "11": "",
-      "12": ""
+      "1": "Bold and forceful, but rash; health is vigorous, with risk of accident.",
+      "2": "Money gained or lost through rash action; spend with care.",
+      "3": "Quarrels with siblings or neighbours; hasty news.",
+      "4": "Strife in the household; disputes over property.",
+      "5": "Passionate pleasures; good for love, risky for children; a son is likely.",
+      "6": "Fever or injury; quarrels at work.",
+      "7": "Good for love and for war; poor for peace or partnership. Open conflict.",
+      "8": "Danger of violent or sudden harm; disputes over legacies.",
+      "9": "Journeys that bring conflict; zeal in belief.",
+      "10": "Advancement through boldness and courage, especially in arms.",
+      "11": "Friends who are bold but unreliable; hopes pursued by force.",
+      "12": "Secret enemies are aggressive; trouble through haste."
     }
   }
 }

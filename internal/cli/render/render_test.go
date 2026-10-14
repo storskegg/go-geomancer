@@ -456,3 +456,76 @@ func TestSignificatorLine(t *testing.T) {
 		t.Errorf("Significator = %q, want %q", got, want)
 	}
 }
+
+func TestMeanings(t *testing.T) {
+	r, err := chart.NewReading([4]figure.Figure{figure.Amissio, figure.FortunaMinor, figure.Via, figure.Populus}, goldendawn.System)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := r.SetSignificator(10); err != nil {
+		t.Fatal(err)
+	}
+	out := plain(Meanings(r, content.Default(), Options{}))
+	blocks := strings.Split(out, "\n\n")
+	if len(blocks) != 8 {
+		t.Fatalf("%d houses, want 8:\n%s", len(blocks), out)
+	}
+	heads := []string{
+		"House 1 · Querent · □ Square ↺ · Self",
+		"House 10 · Significator · Honour",
+		"House 4 · ☍ Opposition · Home",
+		"House 7 · □ Square ↻ · Partnership",
+		"House 6 · △ Trine ↻ · Illness",
+		"House 2 · △ Trine ↺ · Wealth",
+		"House 8 · ⚹ Sextile ↻ · Death",
+		"House 12 · ⚹ Sextile ↺ · Sorrow",
+	}
+	for i, want := range heads {
+		if got := strings.SplitN(blocks[i], "\n", 2)[0]; got != want {
+			t.Errorf("block %d heading = %q, want %q", i, got, want)
+		}
+	}
+	// Each house's figure and its meaning in that house.
+	for i, f := range r.Focus() {
+		fig := r.Square[f.House-1].Figure
+		body := strings.Join(strings.Fields(strings.SplitN(blocks[i], "\n", 2)[1]), " ")
+		want := fig.Name() + " — " + content.Default().For(fig).House(f.House)
+		if body != want {
+			t.Errorf("house %d body = %q, want %q", f.House, body, want)
+		}
+	}
+	if w := lipgloss.Width(Meanings(r, content.Default(), Options{})); w > Width {
+		t.Errorf("meanings are %d wide, want at most %d", w, Width)
+	}
+}
+
+func TestMeaningsUnwritten(t *testing.T) {
+	var b strings.Builder
+	b.WriteString(`{"locale": "xx", "significations": [`)
+	for h := 1; h <= 12; h++ {
+		if h > 1 {
+			b.WriteString(",")
+		}
+		fmt.Fprintf(&b, `{"house": %d, "title": "T%d"}`, h, h)
+	}
+	b.WriteString(`], "figures": [`)
+	for i, f := range figure.All() {
+		if i > 0 {
+			b.WriteString(",")
+		}
+		fmt.Fprintf(&b, `{"figure": %q}`, f.Name())
+	}
+	b.WriteString("]}")
+	c, err := content.Parse([]byte(b.String()))
+	if err != nil {
+		t.Fatal(err)
+	}
+	r, _ := chart.NewReading([4]figure.Figure{}, goldendawn.System)
+	out := plain(Meanings(r, c, Options{}))
+	if got := strings.Count(out, "Not yet written."); got != 12 {
+		t.Errorf("%d placeholders, want 12:\n%s", got, out)
+	}
+	if !strings.HasPrefix(out, "House 1 · Querent · T1\n  Populus — ") {
+		t.Errorf("first block:\n%.80s", out)
+	}
+}

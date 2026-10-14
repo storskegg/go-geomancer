@@ -248,6 +248,10 @@ cast flags:   -q/--significator N|TITLE, --nephews
     each house's sign labels the significator and each aspect (e.g. "□ Square ↻"), coloured red
     for stressful and green for easing; a summary line and legend explain them.
   - The relationship between a figure and its own house is still deferred.
+  - After the Square, a "Reading" section gives the meaning of the figure in each house that
+    bears on the question (`chart.Reading.Focus`): House 1 (the querent), the significator's
+    house, then the houses aspecting it, Opposition first and Dexter before Sinister; a house
+    with several parts is listed once. Without a significator, all twelve houses.
   - `--json` prints the `chart.Reading` so the CLI and API output can be compared.
   - Output goes through a `colorprofile` writer, so styling is stripped or downsampled
     automatically. `--color` overrides that.
@@ -290,3 +294,6 @@ Milestones 1–6 are complete.
 2. Confirm the assumptions above: Figure/Position terms, JM in the Shield.
 3. Mothers input methods beyond the prompt and arguments. *(not blocking)*
 4. House signs when Caput or Cauda Draconis is in the 1st House. Currently no house gets a sign.
+5. Review the draft meanings of each figure in each house (`content/data/en.json`, 192 entries).
+   They're original summaries from each figure's traditional character, not taken from a source.
+   Rubeus and Cauda Draconis in House 1 note that the chart is traditionally not to be judged.

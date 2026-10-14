@@ -89,6 +89,8 @@ head to feet ("1212"), as parities ("odd,even,odd,even"), or by name
 					render.Shield(reading.Shield, ropts),
 					square,
 					render.Square(reading.Square, reading.Significator, ropts),
+					render.Heading("Reading"),
+					render.Meanings(reading, content.Default(), ropts),
 				}, "\n\n")
 			})
 		},

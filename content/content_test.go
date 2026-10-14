@@ -266,3 +266,22 @@ func TestParseInvalidSignifications(t *testing.T) {
 		}
 	}
 }
+
+// Every figure has a meaning in every house.
+func TestHouseMeaningsWritten(t *testing.T) {
+	s := Default()
+	for _, f := range figure.All() {
+		for h := 1; h <= 12; h++ {
+			if s.For(f).House(h) == "" {
+				t.Errorf("%v has no meaning in house %d", f, h)
+			}
+		}
+	}
+	// Traditionally, Rubeus or Cauda Draconis in House 1 means the chart is
+	// not to be judged.
+	for _, f := range []figure.Figure{figure.Rubeus, figure.CaudaDraconis} {
+		if m := s.For(f).House(1); !strings.Contains(m, "not be judged") {
+			t.Errorf("%v in house 1 = %q", f, m)
+		}
+	}
+}
