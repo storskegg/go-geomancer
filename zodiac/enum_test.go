@@ -85,3 +85,46 @@ func TestSignAddProperties(t *testing.T) {
 		}
 	}
 }
+
+func TestSignElement(t *testing.T) {
+	want := map[Element][]Sign{
+		Fire:  {Aries, Leo, Sagittarius},
+		Earth: {Taurus, Virgo, Capricorn},
+		Air:   {Gemini, Libra, Aquarius},
+		Water: {Cancer, Scorpio, Pisces},
+	}
+	for e, signs := range want {
+		for _, s := range signs {
+			if got := s.Element(); got != e {
+				t.Errorf("%v.Element() = %v, want %v", s, got, e)
+			}
+		}
+	}
+	defer func() {
+		if recover() == nil {
+			t.Error("Sign(12).Element() did not panic")
+		}
+	}()
+	Sign(12).Element()
+}
+
+func TestSymbols(t *testing.T) {
+	signs := "♈♉♊♋♌♍♎♏♐♑♒♓"
+	abbrevs := []string{"Ar", "Ta", "Ge", "Cn", "Le", "Vi", "Li", "Sc", "Sg", "Cp", "Aq", "Pi"}
+	for i, s := range Signs() {
+		if got := s.Symbol(); got != string([]rune(signs)[i]) {
+			t.Errorf("%v.Symbol() = %q", s, got)
+		}
+		if got := s.Abbreviation(); got != abbrevs[i] {
+			t.Errorf("%v.Abbreviation() = %q, want %q", s, got, abbrevs[i])
+		}
+	}
+	for e, want := range map[Element]string{Fire: "🜂", Air: "🜁", Water: "🜄", Earth: "🜃"} {
+		if got := e.Symbol(); got != want {
+			t.Errorf("%v.Symbol() = %q, want %q", e, got, want)
+		}
+	}
+	if Sign(12).Symbol() != "Sign(12)" || Element(4).Symbol() != "Element(4)" {
+		t.Error("invalid values don't fall back to their String form")
+	}
+}

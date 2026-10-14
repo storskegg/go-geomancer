@@ -11,7 +11,9 @@ import (
 	"github.com/storskegg/go-geomancer/chart"
 	"github.com/storskegg/go-geomancer/content"
 	"github.com/storskegg/go-geomancer/figure"
+	"github.com/storskegg/go-geomancer/position"
 	"github.com/storskegg/go-geomancer/system"
+	"github.com/storskegg/go-geomancer/system/goldendawn"
 	"github.com/storskegg/go-geomancer/system/traditional"
 	"github.com/storskegg/go-geomancer/zodiac"
 )
@@ -38,7 +40,8 @@ func TestWidths(t *testing.T) {
 
 	for name, out := range map[string]string{
 		"shield": Shield(s, Options{}),
-		"square": Square(sq),
+		"square": Square(sq, Options{}),
+		"ascii":  Square(sq, Options{Symbols: ASCII}),
 		"figure": Figure(figure.Puer, traditional.System, e),
 	} {
 		if w := lipgloss.Width(out); w > Width {
@@ -66,8 +69,8 @@ func TestFigures(t *testing.T) {
 			t.Errorf("table lacks %v (%s)", f, f.Pattern())
 		}
 	}
-	// Caput Draconis has no sign: its row shows a dash in the Sign column.
-	for line := range strings.SplitSeq(out, "\n") {
+	// Golden Dawn gives Caput Draconis no sign: its row shows a dash.
+	for line := range strings.SplitSeq(plain(Figures(goldendawn.System)), "\n") {
 		if strings.Contains(line, "Caput Draconis") && !strings.Contains(line, "│ —") {
 			t.Errorf("Caput Draconis row lacks a dash: %q", line)
 		}
@@ -89,7 +92,7 @@ func TestSquareSigns(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	out := plain(Square(sq))
+	out := plain(Square(sq, Options{}))
 	for _, h := range sq {
 		if !strings.Contains(out, fmt.Sprintf("House %d ", h.Number)) || !strings.Contains(out, h.Sign.String()) {
 			t.Errorf("square lacks house %d or its sign %v", h.Number, h.Sign)
@@ -100,7 +103,7 @@ func TestSquareSigns(t *testing.T) {
 	for i := range sq {
 		sq[i].Sign = nil
 	}
-	if out := plain(Square(sq)); strings.Count(out, "—") != 12 {
+	if out := plain(Square(sq, Options{})); strings.Count(out, "—") != 12 {
 		t.Errorf("unsigned square has %d dashes, want 12", strings.Count(out, "—"))
 	}
 }
@@ -175,7 +178,102 @@ func TestUnmappedPlanet(t *testing.T) {
 	if out := plain(Figure(figure.Puer, bare, content.Entry{Figure: figure.Puer})); !strings.Contains(out, "Planet    —") {
 		t.Errorf("detail lacks an unmapped planet:\n%s", out)
 	}
-	if out := plain(Figure(figure.CaputDraconis, traditional.System, content.Entry{})); !strings.Contains(out, "Planet    North Node") || !strings.Contains(out, "Sign      —") {
+	if out := plain(Figure(figure.CaputDraconis, goldendawn.System, content.Entry{})); !strings.Contains(out, "Planet    North Node") || !strings.Contains(out, "Sign      —") {
 		t.Errorf("Caput Draconis detail:\n%s", out)
+	}
+}
+
+// tile returns the plain lines of house n's tile (1–12) in a rendered Square.
+func tile(out string, n int) []string {
+	lines := strings.Split(plain(out), "\n")
+	row, col := (n-1)/4, (n-1)%4
+	const height = 12 // border, 10 lines, border
+	var t []string
+	for _, l := range lines[row*height : row*height+height] {
+		t = append(t, ansi.Cut(l, col*houseWidth, (col+1)*houseWidth))
+	}
+	return t
+}
+
+func testSquare() chart.Square {
+	taurus, libra, leo := zodiac.Taurus, zodiac.Libra, zodiac.Leo
+	var sq chart.Square
+	for i := range sq {
+		sq[i] = chart.House{Number: i + 1, Position: position.Principals()[i], Figure: figure.Populus, Sign: &leo}
+	}
+	sq[0] = chart.House{Number: 1, Position: position.M1, Figure: figure.Amissio, Sign: &taurus, FigureSign: &libra}
+	sq[1] = chart.House{Number: 2, Position: position.M2, Figure: figure.CaudaDraconis, Sign: &leo}
+	sq[2] = chart.House{Number: 3, Position: position.M3, Figure: figure.Via}
+	return sq
+}
+
+func TestSquareTile(t *testing.T) {
+	out := Square(testSquare(), Options{})
+	tests := []struct {
+		house int
+		row   int // line within the tile; 0 is the top border
+		want  string
+	}{
+		// The house's sign symbol and element flank the sign's name.
+		{1, 2, "│♉     Taurus      🜃│"},
+		// The figure's sign symbol and element flank the figure's name.
+		{1, 9, "│♎    Amissio      🜁│"},
+		// The position row leaves the right edge free.
+		{1, 10, "│         M1         │"},
+		// A figure without a sign has blank edges.
+		{2, 2, "│♌      Leo        🜂│"},
+		{2, 9, "│   Cauda Draconis   │"},
+		// A house without a sign shows a dash and blank edges.
+		{3, 2, "│         —          │"},
+	}
+	for _, tt := range tests {
+		lines := tile(out, tt.house)
+		if got := lines[tt.row]; got != tt.want {
+			t.Errorf("house %d line %d = %q, want %q", tt.house, tt.row, got, tt.want)
+		}
+	}
+	for n := 1; n <= 12; n++ {
+		for i, l := range tile(out, n) {
+			if w := lipgloss.Width(l); w != houseWidth {
+				t.Errorf("house %d line %d is %d wide, want %d: %q", n, i, w, houseWidth, l)
+			}
+		}
+	}
+}
+
+func TestSquareTileASCII(t *testing.T) {
+	out := Square(testSquare(), Options{Symbols: ASCII})
+	if got, want := tile(out, 1)[2], "│Ta     Taurus      E│"; got != want {
+		t.Errorf("house sign row = %q, want %q", got, want)
+	}
+	if got, want := tile(out, 1)[9], "│Li    Amissio      A│"; got != want {
+		t.Errorf("figure row = %q, want %q", got, want)
+	}
+	if strings.ContainsAny(plain(out), "♈♉♊♋♌♍♎♏♐♑♒♓🜂🜁🜄🜃") {
+		t.Error("ASCII square contains Unicode symbols")
+	}
+}
+
+func TestSquareLegend(t *testing.T) {
+	last := func(s string) string { lines := strings.Split(plain(s), "\n"); return lines[len(lines)-1] }
+	if got := last(Square(testSquare(), Options{})); got != "Left: sign · Right: its element · 🜂 Fire · 🜁 Air · 🜄 Water · 🜃 Earth" {
+		t.Errorf("legend = %q", got)
+	}
+	if got := last(Square(testSquare(), Options{Symbols: ASCII})); got != "Left: sign · Right: its element · F Fire · A Air · W Water · E Earth" {
+		t.Errorf("ASCII legend = %q", got)
+	}
+}
+
+func TestParseSymbols(t *testing.T) {
+	for _, s := range []Symbols{Unicode, ASCII} {
+		if got, err := ParseSymbols(strings.ToUpper(s.String())); err != nil || got != s {
+			t.Errorf("ParseSymbols(%q) = %v, %v", s, got, err)
+		}
+	}
+	if _, err := ParseSymbols("emoji"); err == nil {
+		t.Error("ParseSymbols(emoji) succeeded")
+	}
+	if got := Symbols(9).String(); got != "Symbols(9)" {
+		t.Errorf("Symbols(9).String() = %q", got)
 	}
 }

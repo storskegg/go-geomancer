@@ -112,13 +112,16 @@ func TestBuildSquareInvalidSystem(t *testing.T) {
 }
 
 func TestHouseJSON(t *testing.T) {
-	sign := zodiac.Cancer
+	cancer, libra := zodiac.Cancer, zodiac.Libra
 	tests := []struct {
 		house House
 		want  string
 	}{
-		{House{1, position.M1, figure.Amissio, &sign}, `{"number":1,"position":"M1","figure":"Amissio","sign":"Cancer"}`},
-		{House{2, position.M2, figure.Via, nil}, `{"number":2,"position":"M2","figure":"Via"}`},
+		{
+			House{Number: 1, Position: position.M1, Figure: figure.Amissio, Sign: &cancer, FigureSign: &libra},
+			`{"number":1,"position":"M1","figure":"Amissio","sign":"Cancer","figureSign":"Libra"}`,
+		},
+		{House{Number: 2, Position: position.M2, Figure: figure.Via}, `{"number":2,"position":"M2","figure":"Via"}`},
 	}
 	for _, tt := range tests {
 		b, err := json.Marshal(tt.house)
@@ -196,6 +199,13 @@ func checkSquare(t *testing.T, s Shield, sq Square, sys system.System) bool {
 			return false
 		}
 		seen[h.Position] = true
+	}
+	for _, h := range sq {
+		want, ok := sys.Sign(h.Figure)
+		if (h.FigureSign != nil) != ok || (ok && *h.FigureSign != want) {
+			t.Errorf("house %d figure sign = %v, want %v (ok=%v)", h.Number, h.FigureSign, want, ok)
+			return false
+		}
 	}
 	first, ok := sys.Sign(sq[0].Figure)
 	for i, h := range sq {

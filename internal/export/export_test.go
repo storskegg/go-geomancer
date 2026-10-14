@@ -382,10 +382,12 @@ func TestSQLite(t *testing.T) {
 	if err := db.QueryRow("SELECT j, jm FROM charts WHERE id = ?", 0xACF0).Scan(&j, &jm); err != nil || j != int(figure.Carcer) || jm != int(figure.FortunaMajor) {
 		t.Errorf("chart 0xACF0 judge %d, judgement %d, %v", j, jm, err)
 	}
+	// Traditional puts M1 (Amissio) in House 1, which takes Amissio's sign.
 	var house1Sign string
+	want, _ := traditional.System.Sign(figure.Amissio)
 	if err := db.QueryRow(`SELECT s.name FROM chart_houses h JOIN signs s ON s.id = h.sign_id
-		WHERE h.system_id = 'traditional' AND h.chart_id = ? AND h.house = 1`, 0xACF0).Scan(&house1Sign); err != nil || house1Sign != "Taurus" {
-		t.Errorf("traditional house 1 sign = %q, %v", house1Sign, err)
+		WHERE h.system_id = 'traditional' AND h.chart_id = ? AND h.house = 1`, 0xACF0).Scan(&house1Sign); err != nil || house1Sign != want.String() {
+		t.Errorf("traditional house 1 sign = %q, %v; want %v", house1Sign, err, want)
 	}
 	if got := queryInt(t, db, "SELECT count(*) FROM chart_houses WHERE system_id = 'unsigned' AND sign_id IS NOT NULL"); got != 0 {
 		t.Errorf("%d signed houses for the unsigned system", got)

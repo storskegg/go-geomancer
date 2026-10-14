@@ -43,19 +43,37 @@ func TestHouses(t *testing.T) {
 	}
 }
 
-// Every figure has an element and a planet, and every figure but the
-// Draconis pair has a sign.
+// Every figure has a sign, an element and a planet.
 func TestFigureTablesComplete(t *testing.T) {
 	for _, f := range figure.All() {
-		_, hasSign := System.Sign(f)
-		if node := f == figure.CaputDraconis || f == figure.CaudaDraconis; hasSign == node {
-			t.Errorf("%v: has sign = %v, want %v", f, hasSign, !node)
+		if _, ok := System.Sign(f); !ok {
+			t.Errorf("%v has no sign", f)
 		}
 		if _, ok := System.Element(f); !ok {
 			t.Errorf("%v has no element", f)
 		}
 		if _, ok := System.Planet(f); !ok {
 			t.Errorf("%v has no planet", f)
+		}
+	}
+}
+
+func TestSigns(t *testing.T) {
+	want := map[figure.Figure]zodiac.Sign{
+		figure.Puer: zodiac.Aries, figure.Acquisitio: zodiac.Aries,
+		figure.FortunaMinor: zodiac.Taurus, figure.Albus: zodiac.Gemini,
+		figure.Via: zodiac.Leo, figure.Conjunctio: zodiac.Virgo, figure.CaputDraconis: zodiac.Virgo,
+		figure.Amissio: zodiac.Libra, figure.Puella: zodiac.Libra, figure.Rubeus: zodiac.Scorpio,
+		figure.CaudaDraconis: zodiac.Sagittarius, figure.Populus: zodiac.Capricorn,
+		figure.FortunaMajor: zodiac.Aquarius, figure.Tristitia: zodiac.Aquarius,
+		figure.Carcer: zodiac.Pisces, figure.Laetitia: zodiac.Pisces,
+	}
+	if len(want) != 16 {
+		t.Fatalf("table has %d figures", len(want))
+	}
+	for f, sign := range want {
+		if got, ok := System.Sign(f); !ok || got != sign {
+			t.Errorf("Sign(%v) = %v, %v, want %v", f, got, ok, sign)
 		}
 	}
 }
@@ -81,13 +99,9 @@ func TestPlanets(t *testing.T) {
 	}
 }
 
-// The Draconis figures have elements and lunar nodes but no sign.
+// The Draconis figures have elements and lunar nodes, and in this system
+// signs too (see TestSigns).
 func TestDraconis(t *testing.T) {
-	for _, f := range []figure.Figure{figure.CaputDraconis, figure.CaudaDraconis} {
-		if s, ok := System.Sign(f); ok {
-			t.Errorf("%v has sign %v, want none", f, s)
-		}
-	}
 	if e, _ := System.Element(figure.CaputDraconis); e != zodiac.Earth {
 		t.Errorf("Caput Draconis element = %v, want Earth", e)
 	}

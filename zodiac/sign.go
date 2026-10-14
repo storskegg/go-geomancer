@@ -23,6 +23,16 @@ var signLabels = []string{
 	"Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces",
 }
 
+// Unicode symbols, ♈ through ♓.
+var signSymbols = []string{"♈", "♉", "♊", "♋", "♌", "♍", "♎", "♏", "♐", "♑", "♒", "♓"}
+
+// Conventional two-letter abbreviations.
+var signAbbreviations = []string{"Ar", "Ta", "Ge", "Cn", "Le", "Vi", "Li", "Sc", "Sg", "Cp", "Aq", "Pi"}
+
+// triplicity gives each sign's element. The elements repeat in zodiacal
+// order: Fire, Earth, Air, Water.
+var triplicity = [4]Element{Fire, Earth, Air, Water}
+
 // Signs returns all signs in zodiacal order.
 func Signs() []Sign {
 	return []Sign{
@@ -47,6 +57,22 @@ func (s Sign) Add(n int) Sign {
 
 // Next returns the following sign in zodiacal order.
 func (s Sign) Next() Sign { return s.Add(1) }
+
+// Element returns the sign's element (its triplicity). It panics if s is
+// not a valid sign.
+func (s Sign) Element() Element {
+	if !s.Valid() {
+		panic("zodiac: invalid sign")
+	}
+	return triplicity[s%4]
+}
+
+// Symbol returns the sign's Unicode symbol, such as "♈" for Aries. Most
+// terminals draw these two columns wide.
+func (s Sign) Symbol() string { return label(signSymbols, "Sign", s) }
+
+// Abbreviation returns the sign's two-letter abbreviation, such as "Ar".
+func (s Sign) Abbreviation() string { return label(signAbbreviations, "Sign", s) }
 
 func (s Sign) String() string { return label(signLabels, "Sign", s) }
 

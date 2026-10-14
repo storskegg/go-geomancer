@@ -44,6 +44,11 @@ head to feet ("1212"), as parities ("odd,even,odd,even"), or by name
 			if err != nil {
 				return err
 			}
+			symbols, err := render.ParseSymbols(opts.symbols)
+			if err != nil {
+				return err
+			}
+			ropts := render.Options{Nephews: nephews, Symbols: symbols}
 			src, err := mothersSource(cmd, args, &sys)
 			if err != nil {
 				return err
@@ -59,9 +64,9 @@ head to feet ("1212"), as parities ("odd,even,odd,even"), or by name
 			return opts.print(cmd, reading, func() string {
 				return strings.Join([]string{
 					render.Heading("The Shield"),
-					render.Shield(reading.Shield, render.Options{Nephews: nephews}),
+					render.Shield(reading.Shield, ropts),
 					render.Heading("Astrological Square · " + sys.Name()),
-					render.Square(reading.Square),
+					render.Square(reading.Square, ropts),
 				}, "\n\n")
 			})
 		},

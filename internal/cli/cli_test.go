@@ -57,6 +57,7 @@ func TestGolden(t *testing.T) {
 		{"cast-traditional", []string{"cast", "1212", "1122", "1111", "2222"}},
 		{"cast-goldendawn-nephews", []string{"cast", "-s", "goldendawn", "--nephews", "amissio", "fortuna minor", "via", "populus"}},
 		{"cast-json", []string{"cast", "--json", "1212", "1122", "1111", "2222"}},
+		{"cast-ascii", []string{"cast", "--symbols", "ascii", "1212", "1122", "1111", "2222"}},
 		{"figures", []string{"figures"}},
 		{"figure", []string{"figure", "fortuna", "major"}},
 		{"figure-json", []string{"figure", "--json", "puer"}},
@@ -175,6 +176,7 @@ func TestErrors(t *testing.T) {
 		{[]string{"cast", "-s", "nope", "1212", "1212", "1212", "1212"}, `unknown system "nope" (available: goldendawn, traditional)`},
 		{[]string{"figure", "nobody"}, `invalid figure: "nobody"`},
 		{[]string{"systems", "--color", "bogus"}, `invalid --color "bogus"`},
+		{[]string{"cast", "--symbols", "emoji", "1212", "1212", "1212", "1212"}, `unknown symbols "emoji"`},
 	}
 	for _, tt := range tests {
 		_, err := execute(t, tt.args...)

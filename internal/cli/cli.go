@@ -19,9 +19,10 @@ import (
 const defaultSystem = "traditional"
 
 type options struct {
-	system string
-	color  string
-	json   bool
+	system  string
+	color   string
+	symbols string
+	json    bool
 }
 
 // NewCommand returns the root geomancer command. Systems must be registered
@@ -37,6 +38,7 @@ func NewCommand() *cobra.Command {
 	f := root.PersistentFlags()
 	f.StringVarP(&opts.system, "system", "s", defaultSystem, "system of correspondences (see 'geomancer systems')")
 	f.StringVar(&opts.color, "color", "auto", "colour output: auto, always or never")
+	f.StringVar(&opts.symbols, "symbols", "unicode", "sign and element symbols: unicode, or ascii if your font lacks them")
 	f.BoolVar(&opts.json, "json", false, "print JSON instead of text")
 
 	root.AddCommand(

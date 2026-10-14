@@ -29,73 +29,85 @@
       "number": 1,
       "position": "M1",
       "figure": "Amissio",
-      "sign": "Taurus"
+      "sign": "Libra",
+      "figureSign": "Libra"
     },
     {
       "number": 2,
       "position": "M2",
       "figure": "Fortuna Minor",
-      "sign": "Gemini"
+      "sign": "Scorpio",
+      "figureSign": "Taurus"
     },
     {
       "number": 3,
       "position": "M3",
       "figure": "Via",
-      "sign": "Cancer"
+      "sign": "Sagittarius",
+      "figureSign": "Leo"
     },
     {
       "number": 4,
       "position": "M4",
       "figure": "Populus",
-      "sign": "Leo"
+      "sign": "Capricorn",
+      "figureSign": "Capricorn"
     },
     {
       "number": 5,
       "position": "D1",
       "figure": "Cauda Draconis",
-      "sign": "Virgo"
+      "sign": "Aquarius",
+      "figureSign": "Sagittarius"
     },
     {
       "number": 6,
       "position": "D2",
       "figure": "Conjunctio",
-      "sign": "Libra"
+      "sign": "Pisces",
+      "figureSign": "Virgo"
     },
     {
       "number": 7,
       "position": "D3",
       "figure": "Amissio",
-      "sign": "Scorpio"
+      "sign": "Aries",
+      "figureSign": "Libra"
     },
     {
       "number": 8,
       "position": "D4",
       "figure": "Albus",
-      "sign": "Sagittarius"
+      "sign": "Taurus",
+      "figureSign": "Gemini"
     },
     {
       "number": 9,
       "position": "N1",
       "figure": "Conjunctio",
-      "sign": "Capricorn"
+      "sign": "Gemini",
+      "figureSign": "Virgo"
     },
     {
       "number": 10,
       "position": "N2",
       "figure": "Via",
-      "sign": "Aquarius"
+      "sign": "Cancer",
+      "figureSign": "Leo"
     },
     {
       "number": 11,
       "position": "N3",
       "figure": "Laetitia",
-      "sign": "Pisces"
+      "sign": "Leo",
+      "figureSign": "Pisces"
     },
     {
       "number": 12,
       "position": "N4",
       "figure": "Laetitia",
-      "sign": "Aries"
+      "sign": "Virgo",
+      "figureSign": "Pisces"
     }
   ]
 }

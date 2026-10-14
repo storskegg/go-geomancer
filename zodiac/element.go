@@ -12,6 +12,9 @@ const (
 
 var elementLabels = []string{"Fire", "Air", "Water", "Earth"}
 
+// Alchemical symbols. Many terminal fonts lack these.
+var elementSymbols = []string{"🜂", "🜁", "🜄", "🜃"}
+
 // Elements returns all elements in order.
 func Elements() []Element { return []Element{Fire, Air, Water, Earth} }
 
@@ -22,6 +25,10 @@ func ParseElement(s string) (Element, error) { return parse[Element](elementLabe
 func (e Element) Valid() bool { return int(e) < len(elementLabels) }
 
 func (e Element) String() string { return label(elementLabels, "Element", e) }
+
+// Symbol returns the element's alchemical symbol: 🜂 Fire, 🜁 Air, 🜄 Water,
+// 🜃 Earth.
+func (e Element) Symbol() string { return label(elementSymbols, "Element", e) }
 
 func (e Element) MarshalText() ([]byte, error) { return marshal(elementLabels, "element", e) }
 

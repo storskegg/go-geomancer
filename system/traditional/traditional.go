@@ -31,10 +31,11 @@ var System system.System = &system.Mapping{
 
 // signs gives each figure its zodiacal sign.
 //
-// TODO: confirm the traditional table and update this. Until then it copies
-// the Golden Dawn table (see system/goldendawn), which follows planetary
-// rulership. One candidate traditional table, recalled from Gerard of
-// Cremona and NOT verified against a source:
+// Unlike the Golden Dawn table, this gives Caput and Cauda Draconis signs, so
+// the Astrological Square always has signs under this system.
+//
+// For reference, the candidate table first proposed here, recalled from
+// Gerard of Cremona and NOT verified against a source:
 //
 //	Acquisitio: Aries        Puella: Libra
 //	Laetitia: Taurus         Tristitia: Scorpio
@@ -46,20 +47,20 @@ var System system.System = &system.Mapping{
 //	Via: Leo
 //	Caput Draconis: Virgo
 var signs = map[figure.Figure]zodiac.Sign{
-	figure.Puer:         zodiac.Aries,
-	figure.Amissio:      zodiac.Libra,
-	figure.Albus:        zodiac.Gemini,
-	figure.Populus:      zodiac.Capricorn,
-	figure.Via:          zodiac.Leo,
-	figure.FortunaMajor: zodiac.Aquarius,
-	figure.FortunaMinor: zodiac.Taurus,
-	figure.Conjunctio:   zodiac.Virgo,
-	figure.Puella:       zodiac.Libra,
-	figure.Rubeus:       zodiac.Scorpio,
-	figure.Acquisitio:   zodiac.Aries,
-	figure.Carcer:       zodiac.Pisces,
-	figure.Tristitia:    zodiac.Aquarius,
-	figure.Laetitia:     zodiac.Pisces,
+	figure.Puer:          zodiac.Aries,
+	figure.Amissio:       zodiac.Libra,
+	figure.Albus:         zodiac.Gemini,
+	figure.Populus:       zodiac.Capricorn,
+	figure.Via:           zodiac.Leo,
+	figure.FortunaMajor:  zodiac.Aquarius,
+	figure.FortunaMinor:  zodiac.Taurus,
+	figure.Conjunctio:    zodiac.Virgo,
+	figure.Puella:        zodiac.Libra,
+	figure.Rubeus:        zodiac.Scorpio,
+	figure.Acquisitio:    zodiac.Aries,
+	figure.Carcer:        zodiac.Pisces,
+	figure.Tristitia:     zodiac.Aquarius,
+	figure.Laetitia:      zodiac.Pisces,
 	figure.CaputDraconis: zodiac.Virgo,
 	figure.CaudaDraconis: zodiac.Sagittarius,
 }

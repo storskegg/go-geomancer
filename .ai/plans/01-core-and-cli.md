@@ -223,8 +223,15 @@ Global flags: -s/--system (default traditional), --json, --color auto|always|nev
   - Shield in the traditional layout: Mothers and Daughters across the top read right to left
     (M1 at the far right), Nieces below, then the Witnesses, with the Judge centred and JM to its
     right. Each figure is centred under the two it was summed from. 88 columns wide.
-  - Square as a 3×4 grid of bordered house cells (number, sign, glyph, name, position), also
-    88 columns wide. A traditional square-chart drawing can come later.
+  - Square as a 3×4 grid of bordered house cells, also 88 columns wide. Each cell shows the
+    house number; the house's sign flanked by its symbol (left edge) and element (right edge);
+    the figure; the figure's name flanked by the figure's sign symbol and element; and the
+    position. The position row's right edge is reserved for a further element icon. A legend
+    explains the symbols. A traditional square-chart drawing can come later.
+  - `--symbols unicode|ascii`: signs as ♈–♓ or two-letter abbreviations, elements as alchemical
+    triangles (🜂 🜁 🜄 🜃) or letters, for fonts that lack the triangles.
+  - The relationship between a figure and its house (geomantic aspects) is deferred until its
+    rules are worked out.
   - `--json` prints the `chart.Reading` so the CLI and API output can be compared.
   - Output goes through a `colorprofile` writer, so styling is stripped or downsampled
     automatically. `--color` overrides that.

@@ -12,9 +12,12 @@ type House struct {
 	Number   int               `json:"number"`
 	Position position.Position `json:"position"`
 	Figure   figure.Figure     `json:"figure"`
-	// Sign is nil when the system gives no sign to the figure in the 1st
-	// House.
+	// Sign is the house's sign. It is nil when the system gives no sign to
+	// the figure in the 1st House.
 	Sign *zodiac.Sign `json:"sign,omitempty"`
+	// FigureSign is the sign the system gives the house's figure, or nil if
+	// it gives none (as for Caput and Cauda Draconis).
+	FigureSign *zodiac.Sign `json:"figureSign,omitempty"`
 }
 
 // Square is the Astrological Square. Index i holds House i+1.
@@ -34,6 +37,9 @@ func BuildSquare(s Shield, sys system.System) (Square, error) {
 	for _, p := range position.Principals() {
 		h, _ := sys.House(p)
 		sq[h-1] = House{Number: h, Position: p, Figure: s.At(p)}
+		if sign, ok := sys.Sign(s.At(p)); ok {
+			sq[h-1].FigureSign = &sign
+		}
 	}
 
 	if first, ok := sys.Sign(sq[0].Figure); ok {
