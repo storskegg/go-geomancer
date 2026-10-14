@@ -136,3 +136,63 @@ func assertPanics(t *testing.T, name string, f func()) {
 	}()
 	f()
 }
+
+// missingHouse leaves N4 out of the square, which Mapping can't express.
+type missingHouse struct{ Mapping }
+
+func (m missingHouse) House(p position.Position) (int, bool) {
+	if p == position.N4 {
+		return 0, false
+	}
+	return m.Mapping.House(p)
+}
+
+func TestValidateMissingHouse(t *testing.T) {
+	err := Validate(missingHouse{validMapping("test")})
+	if !errors.Is(err, ErrInvalid) || !strings.Contains(err.Error(), "N4 has no house") {
+		t.Errorf("Validate error = %v", err)
+	}
+}
+
+func TestValidateReportsAllProblems(t *testing.T) {
+	m := validMapping("")
+	m.Houses[position.N4] = 13
+	m.SegmentElements[0] = zodiac.Earth
+	err := Validate(m)
+	for _, want := range []string{"ID", "house 13", "both Earth"} {
+		if err == nil || !strings.Contains(err.Error(), want) {
+			t.Errorf("Validate error = %v, want it to mention %q", err, want)
+		}
+	}
+}
+
+func TestMappingName(t *testing.T) {
+	if got := validMapping("test").Name(); got != "Test" {
+		t.Errorf("Name() = %q", got)
+	}
+}
+
+func TestMappingElement(t *testing.T) {
+	m := validMapping("test")
+	if e, ok := m.Element(figure.Via); !ok || e != zodiac.Water {
+		t.Errorf("Element(Via) = %v, %v", e, ok)
+	}
+	if _, ok := m.Element(figure.Puer); ok {
+		t.Error("Element(Puer) ok, want unmapped")
+	}
+}
+
+// Every principal position is placed, in a distinct house, by every
+// registered system.
+func TestRegisteredSystemsArePermutations(t *testing.T) {
+	for _, s := range List() {
+		seen := map[int]bool{}
+		for _, p := range position.Principals() {
+			h, ok := s.House(p)
+			if !ok || seen[h] {
+				t.Errorf("%s: %v in house %d (ok=%v, seen=%v)", s.ID(), p, h, ok, seen[h])
+			}
+			seen[h] = true
+		}
+	}
+}

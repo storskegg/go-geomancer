@@ -2,6 +2,8 @@ package input
 
 import (
 	"bytes"
+	"errors"
+	"fmt"
 	"strings"
 	"testing"
 	"time"
@@ -79,8 +81,8 @@ type driver struct {
 	form *huh.Form
 }
 
-func newDriver(t *testing.T, m *[4]figure.Figure) *driver {
-	d := &driver{t: t, form: newForm(motherGroups(m, false)...)}
+func newDriver(t *testing.T, groups ...*huh.Group) *driver {
+	d := &driver{t: t, form: newForm(groups...)}
 	d.run(d.form.Init())
 	return d
 }
@@ -128,7 +130,7 @@ func (d *driver) view() string { return ansi.Strip(d.form.View()) }
 
 func TestPromptInteractive(t *testing.T) {
 	var m [4]figure.Figure
-	d := newDriver(t, &m)
+	d := newDriver(t, motherGroups(&m, false)...)
 
 	if v := d.view(); !strings.Contains(v, "Mother 1 (M1)") || !strings.Contains(v, "Via") {
 		t.Fatalf("initial view:\n%s", v)
@@ -169,5 +171,123 @@ func TestPromptInteractive(t *testing.T) {
 	}
 	if d.form.State != huh.StateCompleted {
 		t.Errorf("form state = %v, want completed", d.form.State)
+	}
+}
+
+func TestSystemSelect(t *testing.T) {
+	a, b := testSystem("a", "Alpha"), testSystem("b", "Beta")
+	b.SegmentElements = [4]zodiac.Element{zodiac.Fire, zodiac.Water, zodiac.Air, zodiac.Earth}
+	var chosen system.System // nil: defaults to the first system
+	d := newDriver(t, systemGroup(&chosen, []system.System{a, b}, false))
+
+	if chosen != system.System(a) {
+		t.Fatalf("initial choice = %v, want Alpha", chosen)
+	}
+	v := d.view()
+	if !strings.Contains(v, "System") || !strings.Contains(v, "Beta") || !strings.Contains(v, "Neck Air") {
+		t.Errorf("initial view:\n%s", v)
+	}
+
+	d.key(tea.KeyDown)
+	if chosen != system.System(b) {
+		t.Errorf("after ↓, choice = %v, want Beta", chosen)
+	}
+	if v := d.view(); !strings.Contains(v, "Neck Water") {
+		t.Errorf("description doesn't follow the cursor:\n%s", v)
+	}
+	d.key(tea.KeyEnter)
+	if d.form.State != huh.StateCompleted || chosen != system.System(b) {
+		t.Errorf("state = %v, choice = %v", d.form.State, chosen)
+	}
+}
+
+func TestSystemSelectKeepsInitialChoice(t *testing.T) {
+	a, b := testSystem("a", "Alpha"), testSystem("b", "Beta")
+	chosen := system.System(b)
+	d := newDriver(t, systemGroup(&chosen, []system.System{a, b}, false))
+	d.key(tea.KeyEnter)
+	if chosen != system.System(b) {
+		t.Errorf("choice = %v, want Beta", chosen)
+	}
+}
+
+// Shift+Tab from the first Mother returns to the system.
+func TestPromptGoBack(t *testing.T) {
+	a, b := testSystem("a", "Alpha"), testSystem("b", "Beta")
+	chosen := system.System(a)
+	var m [4]figure.Figure
+	d := newDriver(t, append([]*huh.Group{systemGroup(&chosen, []system.System{a, b}, false)}, motherGroups(&m, false)...)...)
+
+	d.key(tea.KeyEnter)
+	if v := d.view(); !strings.Contains(v, "Mother 1 (M1)") {
+		t.Fatalf("not on Mother 1:\n%s", v)
+	}
+	d.send(tea.KeyPressMsg{Code: tea.KeyTab, Mod: tea.ModShift})
+	if v := d.view(); !strings.Contains(v, "Mothers in houses") {
+		t.Fatalf("shift+tab didn't return to the system:\n%s", v)
+	}
+	d.key(tea.KeyDown)
+	d.key(tea.KeyEnter)
+	for range 4 {
+		d.key(tea.KeyEnter)
+	}
+	if chosen != system.System(b) || d.form.State != huh.StateCompleted {
+		t.Errorf("choice = %v, state = %v", chosen.Name(), d.form.State)
+	}
+}
+
+func TestPromptAbort(t *testing.T) {
+	var m [4]figure.Figure
+	d := newDriver(t, motherGroups(&m, false)...)
+	d.send(tea.KeyPressMsg{Code: 'c', Mod: tea.ModCtrl})
+	if d.form.State != huh.StateAborted {
+		t.Errorf("state after ctrl+c = %v, want aborted", d.form.State)
+	}
+}
+
+func TestFormError(t *testing.T) {
+	other := errors.New("boom")
+	tests := []struct{ in, want error }{
+		{nil, nil},
+		{huh.ErrUserAborted, ErrAborted},
+		{fmt.Errorf("wrapped: %w", huh.ErrUserAborted), ErrAborted},
+		{other, other},
+	}
+	for _, tt := range tests {
+		if got := formError(tt.in); !errors.Is(got, tt.want) || (tt.want == nil && got != nil) {
+			t.Errorf("formError(%v) = %v, want %v", tt.in, got, tt.want)
+		}
+	}
+}
+
+func TestByteReader(t *testing.T) {
+	r := byteReader{strings.NewReader("abc")}
+	buf := make([]byte, 8)
+	var got []byte
+	for {
+		n, err := r.Read(buf)
+		if n > 1 {
+			t.Fatalf("Read returned %d bytes, want at most 1", n)
+		}
+		got = append(got, buf[:n]...)
+		if err != nil {
+			break
+		}
+	}
+	if string(got) != "abc" {
+		t.Errorf("read %q, want abc", got)
+	}
+}
+
+func TestPreview(t *testing.T) {
+	got := ansi.Strip(preview(figure.Puer)) // 1121
+	want := strings.Join([]string{
+		"  ●     Puer",
+		"  ●     1121",
+		"●   ●   Mars",
+		"  ●     ",
+	}, "\n")
+	if got != want {
+		t.Errorf("preview =\n%q\nwant\n%q", got, want)
 	}
 }

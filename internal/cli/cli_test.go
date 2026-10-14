@@ -4,20 +4,24 @@ import (
 	"bytes"
 	"encoding/json"
 	"flag"
+	"fmt"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
 	"testing"
 
+	"github.com/spf13/cobra"
+
 	"github.com/storskegg/go-geomancer/chart"
+	"github.com/storskegg/go-geomancer/internal/cli/input"
 	_ "github.com/storskegg/go-geomancer/system/goldendawn"
 	_ "github.com/storskegg/go-geomancer/system/traditional"
 )
 
 var update = flag.Bool("update", false, "rewrite golden files")
 
-func run(t *testing.T, args ...string) (string, error) {
+func execute(t *testing.T, args ...string) (string, error) {
 	t.Helper()
 	stdout, _, err := runWithInput(t, "", args...)
 	return stdout, err
@@ -61,7 +65,7 @@ func TestGolden(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := run(t, append(tt.args, "--color", "never")...)
+			got, err := execute(t, append(tt.args, "--color", "never")...)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -86,7 +90,7 @@ func TestGolden(t *testing.T) {
 }
 
 func TestCastJSONMatchesCore(t *testing.T) {
-	out, err := run(t, "cast", "--json", "1212", "1122", "1111", "2222")
+	out, err := execute(t, "cast", "--json", "1212", "1122", "1111", "2222")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -144,14 +148,14 @@ func TestCastPromptSystem(t *testing.T) {
 var ansi = regexp.MustCompile("\x1b\\[")
 
 func TestColor(t *testing.T) {
-	always, err := run(t, "systems", "--color", "always")
+	always, err := execute(t, "systems", "--color", "always")
 	if err != nil {
 		t.Fatal(err)
 	}
 	if !ansi.MatchString(always) {
 		t.Error("--color always produced no escape codes")
 	}
-	never, err := run(t, "systems", "--color", "never")
+	never, err := execute(t, "systems", "--color", "never")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -173,9 +177,117 @@ func TestErrors(t *testing.T) {
 		{[]string{"systems", "--color", "bogus"}, `invalid --color "bogus"`},
 	}
 	for _, tt := range tests {
-		_, err := run(t, tt.args...)
+		_, err := execute(t, tt.args...)
 		if err == nil || !strings.Contains(err.Error(), tt.want) {
 			t.Errorf("%v: error = %v, want it to contain %q", tt.args, err, tt.want)
+		}
+	}
+}
+
+func TestRunExitCodes(t *testing.T) {
+	tests := []struct {
+		name   string
+		args   []string
+		code   int
+		stderr string
+	}{
+		{"success", []string{"systems", "--color", "never"}, 0, ""},
+		{"error", []string{"figure", "nobody"}, 1, `Error: figure: invalid figure: "nobody"`},
+		{"cancelled", []string{"cancel"}, 130, ""},
+		{"unknown command", []string{"divine"}, 1, `Error: unknown command "divine"`},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cmd := NewCommand()
+			cmd.AddCommand(&cobra.Command{
+				Use:  "cancel",
+				RunE: func(*cobra.Command, []string) error { return fmt.Errorf("prompt: %w", input.ErrAborted) },
+			})
+			var out, errOut bytes.Buffer
+			cmd.SetOut(&out)
+			cmd.SetErr(&errOut)
+			if got := run(cmd, tt.args); got != tt.code {
+				t.Errorf("exit code = %d, want %d", got, tt.code)
+			}
+			if tt.stderr == "" && errOut.Len() > 0 {
+				t.Errorf("unexpected stderr: %q", errOut.String())
+			}
+			if !strings.Contains(errOut.String(), tt.stderr) {
+				t.Errorf("stderr = %q, want it to contain %q", errOut.String(), tt.stderr)
+			}
+		})
+	}
+}
+
+func TestUnknownSystemEverywhere(t *testing.T) {
+	for _, args := range [][]string{
+		{"figures", "-s", "nope"},
+		{"figure", "-s", "nope", "puer"},
+		{"cast", "-s", "nope", "1212", "1212", "1212", "1212"},
+	} {
+		if _, err := execute(t, args...); err == nil || !strings.Contains(err.Error(), `unknown system "nope"`) {
+			t.Errorf("%v: error = %v", args, err)
+		}
+	}
+}
+
+func TestSystemFlagCaseInsensitive(t *testing.T) {
+	out, err := execute(t, "cast", "--json", "-s", "GoldenDawn", "1212", "1122", "1111", "2222")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(out, `"system": "goldendawn"`) {
+		t.Errorf("output:\n%s", out)
+	}
+}
+
+func TestFigureByPattern(t *testing.T) {
+	byName, err := execute(t, "figure", "--json", "amissio")
+	if err != nil {
+		t.Fatal(err)
+	}
+	byPattern, err := execute(t, "figure", "--json", "1212")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if byName != byPattern {
+		t.Error("figure amissio and figure 1212 differ")
+	}
+}
+
+func TestFiguresJSON(t *testing.T) {
+	out, err := execute(t, "figures", "--json", "-s", "goldendawn")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var figs []struct {
+		Name    string  `json:"name"`
+		Sign    *string `json:"sign"`
+		Element *string `json:"element"`
+	}
+	if err := json.Unmarshal([]byte(out), &figs); err != nil {
+		t.Fatal(err)
+	}
+	if len(figs) != 16 {
+		t.Fatalf("%d figures, want 16", len(figs))
+	}
+	for _, f := range figs {
+		node := f.Name == "Caput Draconis" || f.Name == "Cauda Draconis"
+		if (f.Sign == nil) != node || f.Element == nil {
+			t.Errorf("%s: sign %v, element %v", f.Name, f.Sign, f.Element)
+		}
+	}
+}
+
+func TestArgCounts(t *testing.T) {
+	for _, args := range [][]string{
+		{"figures", "extra"},
+		{"systems", "extra"},
+		{"figure"},
+		{"cast", "1", "2", "3", "4", "5"},
+	} {
+		if _, err := execute(t, args...); err == nil {
+			t.Errorf("%v succeeded", args)
 		}
 	}
 }

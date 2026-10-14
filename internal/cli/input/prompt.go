@@ -50,13 +50,15 @@ func (p Prompt) Mothers() ([4]figure.Figure, error) {
 	}
 	groups = append(groups, motherGroups(&m, p.Accessible)...)
 	form := newForm(groups...).WithAccessible(p.Accessible).WithInput(in).WithOutput(p.Out)
-	if err := form.Run(); err != nil {
-		if errors.Is(err, huh.ErrUserAborted) {
-			return m, ErrAborted
-		}
-		return m, err
+	return m, formError(form.Run())
+}
+
+// formError translates huh's cancellation error to ErrAborted.
+func formError(err error) error {
+	if errors.Is(err, huh.ErrUserAborted) {
+		return ErrAborted
 	}
-	return m, nil
+	return err
 }
 
 func newForm(groups ...*huh.Group) *huh.Form {
@@ -72,10 +74,13 @@ func systemGroup(sys *system.System, systems []system.System, accessible bool) *
 	if *sys == nil {
 		*sys = systems[0]
 	}
+	// Without a height the select shows a single option. This fits the
+	// title, the two-line description and every system.
 	sel := huh.NewSelect[system.System]().
 		Title("System").
 		Options(options...).
-		Value(sys)
+		Value(sys).
+		Height(1 + 2 + len(systems))
 	if accessible {
 		sel.Description("Choose the system of correspondences.")
 	} else {

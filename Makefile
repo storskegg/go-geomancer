@@ -1,4 +1,4 @@
-.PHONY: all build geomancer test golden lint fmt vet tidy
+.PHONY: all build geomancer test cover golden lint fmt vet tidy
 
 all: lint test build
 
@@ -10,6 +10,11 @@ geomancer:
 
 test:
 	go test -race ./...
+
+# Per-function coverage, least-covered last.
+cover:
+	go test -coverprofile=coverage.out ./...
+	go tool cover -func=coverage.out | sort -k3 -rn
 
 # Rewrite the CLI golden files after an intended output change.
 golden:

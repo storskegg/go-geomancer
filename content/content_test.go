@@ -111,3 +111,74 @@ func file(extra ...string) string {
 	}
 	return `{"locale": "en", "figures": [` + strings.Join(entries, ",") + `]}`
 }
+
+func TestParseInvalidTypes(t *testing.T) {
+	tests := map[string]string{
+		"houses array":  file(`{"figure": "Via", "houses": ["a"]}`),
+		"short number":  file(`{"figure": "Via", "short": 5}`),
+		"figures empty": `{"locale": "en", "figures": []}`,
+		"house zero":    file(`{"figure": "Via", "houses": {"0": ""}}`),
+	}
+	for name, in := range tests {
+		if _, err := Parse([]byte(in)); err == nil {
+			t.Errorf("%s: Parse succeeded", name)
+		}
+	}
+}
+
+func TestHousesJSON(t *testing.T) {
+	var h Houses
+	h[0] = `a "quoted" line` + "\nand a newline"
+	h[11] = "<last> & ünïcode"
+	b, err := json.Marshal(h)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !json.Valid(b) {
+		t.Fatalf("Marshal produced invalid JSON: %s", b)
+	}
+	if !strings.HasPrefix(string(b), `{"1":"a \"quoted\" line\nand a newline","2":""`) {
+		t.Errorf("Marshal = %s", b)
+	}
+	var back Houses
+	if err := json.Unmarshal(b, &back); err != nil {
+		t.Fatal(err)
+	}
+	if back != h {
+		t.Errorf("round trip = %q, want %q", back, h)
+	}
+}
+
+// Unmarshalling into a used Houses value replaces it rather than merging.
+func TestHousesUnmarshalResets(t *testing.T) {
+	h := Houses{"old"}
+	if err := json.Unmarshal([]byte(`{"2": "new"}`), &h); err != nil {
+		t.Fatal(err)
+	}
+	if h[0] != "" || h[1] != "new" {
+		t.Errorf("houses = %q", h)
+	}
+}
+
+func TestEmbeddedEntriesUseCanonicalNames(t *testing.T) {
+	for _, l := range Locales() {
+		b, err := data.ReadFile("data/" + l + ".json")
+		if err != nil {
+			t.Fatal(err)
+		}
+		var raw struct {
+			Figures []struct {
+				Figure string `json:"figure"`
+			} `json:"figures"`
+		}
+		if err := json.Unmarshal(b, &raw); err != nil {
+			t.Fatal(err)
+		}
+		for _, e := range raw.Figures {
+			f, err := figure.Parse(e.Figure)
+			if err != nil || f.Name() != e.Figure {
+				t.Errorf("%s.json: figure %q should be written %q", l, e.Figure, f.Name())
+			}
+		}
+	}
+}

@@ -150,3 +150,63 @@ func TestNewReading(t *testing.T) {
 		t.Errorf("NewReading error = %v, want ErrInvalidMother", err)
 	}
 }
+
+func TestNewReadingInvalidSystem(t *testing.T) {
+	m := withSigns(nil)
+	m.Slug = ""
+	if _, err := NewReading(exampleMothers, m); !errors.Is(err, system.ErrInvalid) {
+		t.Errorf("NewReading error = %v, want system.ErrInvalid", err)
+	}
+}
+
+// For every Shield, each system's Square holds exactly the twelve principal
+// figures, and signs (when present) run in zodiacal order from House 1.
+func TestBuildSquareExhaustive(t *testing.T) {
+	systems := []system.System{traditional.System, goldendawn.System}
+	all := figure.All()
+	for _, m1 := range all {
+		for _, m2 := range all {
+			for _, m3 := range all {
+				for _, m4 := range all {
+					s, err := Cast([4]figure.Figure{m1, m2, m3, m4})
+					if err != nil {
+						t.Fatal(err)
+					}
+					for _, sys := range systems {
+						sq, err := BuildSquare(s, sys)
+						if err != nil {
+							t.Fatal(err)
+						}
+						if !checkSquare(t, s, sq, sys) {
+							t.Fatalf("%s, mothers %v %v %v %v", sys.ID(), m1, m2, m3, m4)
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+func checkSquare(t *testing.T, s Shield, sq Square, sys system.System) bool {
+	t.Helper()
+	seen := map[position.Position]bool{}
+	for i, h := range sq {
+		if h.Number != i+1 || !h.Position.Principal() || seen[h.Position] || h.Figure != s.At(h.Position) {
+			t.Errorf("house %d = %+v", i+1, h)
+			return false
+		}
+		seen[h.Position] = true
+	}
+	first, ok := sys.Sign(sq[0].Figure)
+	for i, h := range sq {
+		switch {
+		case !ok && h.Sign != nil:
+			t.Errorf("house %d has sign %v, want none", h.Number, *h.Sign)
+			return false
+		case ok && (h.Sign == nil || *h.Sign != first.Add(i)):
+			t.Errorf("house %d sign = %v, want %v", h.Number, h.Sign, first.Add(i))
+			return false
+		}
+	}
+	return true
+}

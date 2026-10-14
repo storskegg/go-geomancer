@@ -216,3 +216,52 @@ func mustParse(t *testing.T, s string) Figure {
 	}
 	return f
 }
+
+func TestInvalidFigure(t *testing.T) {
+	f := Figure(16)
+	if f.Valid() {
+		t.Error("Figure(16) reported valid")
+	}
+	if got := f.Name(); got != "Figure(16)" {
+		t.Errorf("Name() = %q", got)
+	}
+	if got := f.String(); got != "Figure(16)" {
+		t.Errorf("String() = %q", got)
+	}
+	for _, f := range All() {
+		if f.String() != f.Name() {
+			t.Errorf("%v: String() = %q, Name() = %q", f, f.String(), f.Name())
+		}
+	}
+}
+
+func TestAddStaysValid(t *testing.T) {
+	// High bits on an out-of-range operand are masked off.
+	if got := Via.Add(Figure(0b1_0000)); !got.Valid() || got != Via {
+		t.Errorf("Via + Figure(16) = %d, want Via", got)
+	}
+}
+
+func TestUnmarshalTextInvalid(t *testing.T) {
+	f := Puer
+	if err := f.UnmarshalText([]byte("Nobody")); !errors.Is(err, ErrInvalid) {
+		t.Errorf("UnmarshalText(Nobody) error = %v, want ErrInvalid", err)
+	}
+	if f != Puer {
+		t.Errorf("failed UnmarshalText changed the figure to %v", f)
+	}
+	var figs []Figure
+	if err := json.Unmarshal([]byte(`["Via", "1213"]`), &figs); !errors.Is(err, ErrInvalid) {
+		t.Errorf("json.Unmarshal error = %v, want ErrInvalid", err)
+	}
+}
+
+func TestOddEvenDotsByCount(t *testing.T) {
+	// A figure's dots depend only on how many segments are odd.
+	for _, f := range All() {
+		odd := f.OddDots()
+		if want := 8 - odd; f.Dots() != want {
+			t.Errorf("%v: Dots() = %d, want 8 - %d odd = %d", f, f.Dots(), odd, want)
+		}
+	}
+}

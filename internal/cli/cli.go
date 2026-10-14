@@ -48,9 +48,13 @@ func NewCommand() *cobra.Command {
 	return root
 }
 
-// Execute runs the CLI and returns the process exit code.
-func Execute() int {
-	cmd := NewCommand()
+// Execute runs the CLI with the process arguments and returns the exit code.
+func Execute() int { return run(NewCommand(), os.Args[1:]) }
+
+// run executes cmd with args, reports any error on cmd's stderr, and returns
+// the exit code: 0 on success, 130 if the user cancelled, and 1 otherwise.
+func run(cmd *cobra.Command, args []string) int {
+	cmd.SetArgs(args)
 	if err := cmd.Execute(); err != nil {
 		if errors.Is(err, input.ErrAborted) {
 			return 130 // conventional exit code for an interrupted command

@@ -81,11 +81,8 @@ func (h Houses) MarshalJSON() ([]byte, error) {
 		if i > 0 {
 			b.WriteByte(',')
 		}
-		val, err := json.Marshal(v)
-		if err != nil {
-			return nil, err
-		}
-		fmt.Fprintf(&b, "%q:%s", strconv.Itoa(i+1), val)
+		val, _ := json.Marshal(v) // marshalling a string can't fail
+		fmt.Fprintf(&b, `"%d":%s`, i+1, val)
 	}
 	b.WriteByte('}')
 	return b.Bytes(), nil

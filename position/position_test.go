@@ -64,3 +64,37 @@ func TestJSON(t *testing.T) {
 		t.Errorf("Marshal(Position(16)) error = %v, want ErrUnknown", err)
 	}
 }
+
+func TestString(t *testing.T) {
+	want := []string{"M1", "M2", "M3", "M4", "D1", "D2", "D3", "D4", "N1", "N2", "N3", "N4", "WR", "WL", "J", "JM"}
+	for i, p := range All() {
+		if got := p.String(); got != want[i] {
+			t.Errorf("Position(%d).String() = %q, want %q", i, got, want[i])
+		}
+	}
+	if got := Position(16).String(); got != "Position(16)" {
+		t.Errorf("Position(16).String() = %q", got)
+	}
+}
+
+func TestPrincipalsOrder(t *testing.T) {
+	want := [12]Position{M1, M2, M3, M4, D1, D2, D3, D4, N1, N2, N3, N4}
+	if got := Principals(); got != want {
+		t.Errorf("Principals() = %v", got)
+	}
+}
+
+func TestUnmarshalText(t *testing.T) {
+	var ps []Position
+	if err := json.Unmarshal([]byte(`["M1", "wr", "JM"]`), &ps); err != nil {
+		t.Fatal(err)
+	}
+	if len(ps) != 3 || ps[0] != M1 || ps[1] != WR || ps[2] != JM {
+		t.Errorf("Unmarshal = %v", ps)
+	}
+
+	p := J
+	if err := p.UnmarshalText([]byte("X1")); !errors.Is(err, ErrUnknown) || p != J {
+		t.Errorf("UnmarshalText(X1) = %v, left %v", err, p)
+	}
+}
