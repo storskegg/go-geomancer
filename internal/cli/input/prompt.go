@@ -21,8 +21,8 @@ import (
 var ErrAborted = errors.New("cancelled")
 
 // Prompt asks for each Mother in turn with a scrollable select. Typing
-// filters the list by name or dot pattern. It can first ask for the system
-// and the significator.
+// filters the list by name or dot pattern. It can first ask for the system,
+// the question and the significator, in that order.
 type Prompt struct {
 	In  io.Reader
 	Out io.Writer
@@ -34,6 +34,10 @@ type Prompt struct {
 	// of them, starting from *System, and the choice is written to System.
 	System  *system.System
 	Systems []system.System
+	// If AskQuestion is set, the user may type their question, which is
+	// written to Question.
+	AskQuestion bool
+	Question    *string
 	// If Significations is non-empty, the user chooses the significator,
 	// the house of the question, from them; the choice (1–12) is written to
 	// Significator, whose value, if valid, is the initial choice.
@@ -55,6 +59,9 @@ func (p Prompt) Mothers() ([4]figure.Figure, error) {
 	var groups []*huh.Group
 	if len(p.Systems) > 0 {
 		groups = append(groups, systemGroup(p.System, p.Systems, p.Accessible))
+	}
+	if p.AskQuestion {
+		groups = append(groups, questionGroup(p.Question))
 	}
 	if len(p.Significations) > 0 {
 		groups = append(groups, significatorGroup(p.Significator, p.Significations, p.Accessible))
@@ -113,6 +120,19 @@ func describeSystem(s system.System) string {
 		houses = append(houses, strconv.Itoa(h))
 	}
 	return strings.Join(segs, " · ") + "\nMothers in houses " + strings.Join(houses, ", ")
+}
+
+// questionMax is the longest question accepted, in characters.
+const questionMax = 300
+
+// questionGroup asks for the question in the querent's own words, writing it
+// to q. It may be left empty.
+func questionGroup(q *string) *huh.Group {
+	return huh.NewGroup(huh.NewInput().
+		Title("Question").
+		Description("What would you like to ask? Optional; press Enter to skip.").
+		CharLimit(questionMax).
+		Value(q))
 }
 
 // significatorGroup offers the houses' significations, writing the chosen

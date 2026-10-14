@@ -56,6 +56,7 @@ func TestGolden(t *testing.T) {
 	}{
 		{"cast-traditional", []string{"cast", "-s", "traditional", "1212", "1122", "1111", "2222"}},
 		{"cast-significator", []string{"cast", "--significator", "partnership", "1212", "1122", "1111", "2222"}},
+		{"cast-question", []string{"cast", "--question", "Will the contract be signed?", "-q", "7", "1212", "1122", "1111", "2222"}},
 		{"cast-goldendawn-nephews", []string{"cast", "-s", "goldendawn", "--nephews", "amissio", "fortuna minor", "via", "populus"}},
 		{"cast-json", []string{"cast", "--json", "1212", "1122", "1111", "2222"}},
 		{"cast-ascii", []string{"cast", "--symbols", "ascii", "1212", "1122", "1111", "2222"}},
@@ -135,7 +136,7 @@ func TestSignificatorFlag(t *testing.T) {
 // The prompts go to stderr, leaving stdout with only the reading.
 func TestCastPromptAccessible(t *testing.T) {
 	t.Setenv("ACCESSIBLE", "1")
-	stdout, stderr, err := runWithInput(t, "6\n8\n1\n2\n", "cast", "--json", "--system", "traditional", "--significator", "7")
+	stdout, stderr, err := runWithInput(t, "6\n8\n1\n2\n", "cast", "--json", "--system", "traditional", "--significator", "7", "--question", "Will it?")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -149,8 +150,8 @@ func TestCastPromptAccessible(t *testing.T) {
 	if !strings.Contains(stderr, "Mother 1 (M1)") {
 		t.Errorf("stderr lacks the prompt:\n%s", stderr)
 	}
-	if strings.Contains(stderr, "System") || strings.Contains(stderr, "Significator") {
-		t.Errorf("prompted for the system or significator despite the flags:\n%s", stderr)
+	if strings.Contains(stderr, "System") || strings.Contains(stderr, "Significator") || strings.Contains(stderr, "Question") {
+		t.Errorf("prompted for the system, question or significator despite the flags:\n%s", stderr)
 	}
 	if r.System != "traditional" || r.Significator != 7 {
 		t.Errorf("system %s, significator %d", r.System, r.Significator)
@@ -160,9 +161,9 @@ func TestCastPromptAccessible(t *testing.T) {
 // Without --system and --significator, both are chosen before the Mothers.
 func TestCastPromptSystem(t *testing.T) {
 	t.Setenv("ACCESSIBLE", "1")
-	// Systems are listed by ID, so 2 is traditional; houses are listed in
-	// order, so 9 is House 9.
-	stdout, stderr, err := runWithInput(t, "2\n9\n6\n8\n1\n2\n", "cast", "--json")
+	// Systems are listed by ID, so 2 is traditional; then the question;
+	// houses are listed in order, so 9 is House 9.
+	stdout, stderr, err := runWithInput(t, "2\nShall I travel?\n9\n6\n8\n1\n2\n", "cast", "--json")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -170,10 +171,10 @@ func TestCastPromptSystem(t *testing.T) {
 	if err := json.Unmarshal([]byte(stdout), &r); err != nil {
 		t.Fatalf("stdout is not a reading: %v\n%s", err, stdout)
 	}
-	if r.System != "traditional" || r.Significator != 9 || r.Shield.Mothers[0].Name() != "Amissio" || r.Shield.Mothers[3].Name() != "Populus" {
+	if r.System != "traditional" || r.Question != "Shall I travel?" || r.Significator != 9 || r.Shield.Mothers[0].Name() != "Amissio" || r.Shield.Mothers[3].Name() != "Populus" {
 		t.Errorf("reading = %s, significator %d, mothers %v", r.System, r.Significator, r.Shield.Mothers)
 	}
-	for _, want := range []string{"System", "Significator", "9. Journeys — long journeys"} {
+	for _, want := range []string{"System", "Question", "Significator", "9. Journeys — long journeys"} {
 		if !strings.Contains(stderr, want) {
 			t.Errorf("stderr lacks %q:\n%s", want, stderr)
 		}
@@ -326,6 +327,54 @@ func TestArgCounts(t *testing.T) {
 	} {
 		if _, err := execute(t, args...); err == nil {
 			t.Errorf("%v succeeded", args)
+		}
+	}
+}
+
+func TestCastPDF(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "reading.pdf")
+	stdout, stderr, err := runWithInput(t, "", "cast", "--color", "never", "--question", "Will it work?", "-q", "7", "--pdf", path, "1212", "1122", "1111", "2222")
+	if err != nil {
+		t.Fatal(err)
+	}
+	// The terminal output is unchanged; the report is extra.
+	if !strings.Contains(stdout, "The Shield") || !strings.Contains(stdout, "Question: “Will it work?”") {
+		t.Errorf("stdout lacks the reading:\n%.200s", stdout)
+	}
+	if stderr != "Wrote the report to "+path+".\n" {
+		t.Errorf("stderr = %q", stderr)
+	}
+	b, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.HasPrefix(b, []byte("%PDF-")) || !bytes.Contains(b, []byte("/Count 3")) {
+		t.Errorf("not a 3-page PDF: %.20q", b)
+	}
+	if info, _ := os.Stat(path); info.Mode().Perm()&0o644 != 0o644 {
+		t.Errorf("permissions %v", info.Mode().Perm())
+	}
+	if entries, _ := os.ReadDir(dir); len(entries) != 1 {
+		t.Errorf("%d files in the directory, want just the report", len(entries))
+	}
+
+	// With --json, too.
+	if _, _, err := runWithInput(t, "", "cast", "--json", "--pdf", path, "1212", "1122", "1111", "2222"); err != nil {
+		t.Fatal(err)
+	}
+}
+
+// A bad --pdf path fails before any prompt.
+func TestCastPDFBadPath(t *testing.T) {
+	t.Setenv("ACCESSIBLE", "1")
+	for _, path := range []string{filepath.Join(t.TempDir(), "missing", "x.pdf"), "go.mod/x.pdf"} {
+		_, stderr, err := runWithInput(t, "", "cast", "--pdf", path)
+		if err == nil || !strings.Contains(err.Error(), "can't write "+path) {
+			t.Errorf("%s: error = %v", path, err)
+		}
+		if stderr != "" {
+			t.Errorf("%s: prompted before failing:\n%s", path, stderr)
 		}
 	}
 }

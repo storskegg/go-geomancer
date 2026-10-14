@@ -10,6 +10,8 @@ import (
 // under a System.
 type Reading struct {
 	System string `json:"system"`
+	// Question is the querent's question in their own words, if given.
+	Question string `json:"question,omitempty"`
 	// Significator is the house (1–12) of the matter asked about, or 0 if
 	// the reading has none. House 1 always signifies the querent. Set it
 	// with SetSignificator.

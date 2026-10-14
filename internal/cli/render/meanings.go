@@ -10,6 +10,11 @@ import (
 	"github.com/storskegg/go-geomancer/content"
 )
 
+// Question shows the querent's question, wrapped to Width.
+func Question(q string) string {
+	return lipgloss.NewStyle().Width(Width).Render(labelStyle.Render("Question: ") + nameStyle.Render("“"+q+"”"))
+}
+
 // Meanings interprets the reading: for each house that bears on the
 // question (see chart.Reading.Focus), its parts in the question and the
 // meaning of the figure in it.

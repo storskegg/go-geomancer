@@ -388,3 +388,40 @@ func TestCircled(t *testing.T) {
 		t.Errorf("circled = %q", got)
 	}
 }
+
+func TestQuestionInput(t *testing.T) {
+	q := ""
+	d := newDriver(t, questionGroup(&q))
+	if v := d.view(); !strings.Contains(v, "Question") || !strings.Contains(v, "Optional") {
+		t.Errorf("view:\n%s", v)
+	}
+	d.typeText("Will it rain?")
+	d.key(tea.KeyEnter)
+	if q != "Will it rain?" || d.form.State != huh.StateCompleted {
+		t.Errorf("question %q, state %v", q, d.form.State)
+	}
+
+	// Enter alone skips it.
+	q = ""
+	d = newDriver(t, questionGroup(&q))
+	d.key(tea.KeyEnter)
+	if q != "" || d.form.State != huh.StateCompleted {
+		t.Errorf("skipped question %q, state %v", q, d.form.State)
+	}
+}
+
+func TestPromptAccessibleQuestion(t *testing.T) {
+	q := ""
+	var out bytes.Buffer
+	p := Prompt{
+		In: strings.NewReader("Will the contract be signed?\n6\n8\n1\n2\n"), Out: &out, Accessible: true,
+		AskQuestion: true, Question: &q,
+	}
+	got, err := p.Mothers()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if q != "Will the contract be signed?" || got[0] != figure.Amissio || got[3] != figure.Populus {
+		t.Errorf("question %q, mothers %v", q, got)
+	}
+}
