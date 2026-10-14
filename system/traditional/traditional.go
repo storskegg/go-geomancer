@@ -47,19 +47,21 @@ var System system.System = &system.Mapping{
 //	Caput Draconis: Virgo
 var signs = map[figure.Figure]zodiac.Sign{
 	figure.Puer:         zodiac.Aries,
-	figure.Amissio:      zodiac.Taurus,
+	figure.Amissio:      zodiac.Libra,
 	figure.Albus:        zodiac.Gemini,
-	figure.Populus:      zodiac.Cancer,
-	figure.Via:          zodiac.Cancer,
-	figure.FortunaMajor: zodiac.Leo,
-	figure.FortunaMinor: zodiac.Leo,
+	figure.Populus:      zodiac.Capricorn,
+	figure.Via:          zodiac.Leo,
+	figure.FortunaMajor: zodiac.Aquarius,
+	figure.FortunaMinor: zodiac.Taurus,
 	figure.Conjunctio:   zodiac.Virgo,
 	figure.Puella:       zodiac.Libra,
 	figure.Rubeus:       zodiac.Scorpio,
-	figure.Acquisitio:   zodiac.Sagittarius,
-	figure.Carcer:       zodiac.Capricorn,
+	figure.Acquisitio:   zodiac.Aries,
+	figure.Carcer:       zodiac.Pisces,
 	figure.Tristitia:    zodiac.Aquarius,
 	figure.Laetitia:     zodiac.Pisces,
+	figure.CaputDraconis: zodiac.Virgo,
+	figure.CaudaDraconis: zodiac.Sagittarius,
 }
 
 // elements gives each figure its element.
