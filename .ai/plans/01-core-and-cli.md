@@ -182,7 +182,10 @@ rather than YAML keeps the core free of third-party dependencies.
 ]}
 ```
 
-`content.Default().For(figure.Figure)` returns the `Entry`. Loading checks that each of the 16
+`content.Default().For(figure.Figure)` returns the `Entry`. The file also holds the twelve
+houses' significations (title and text), the same in every system, used to choose the
+significator; a reading records it as `Reading.Significator` and the Square gives that house a
+heavy border. Loading checks that each of the 16
 figures appears exactly once. All text fields ship empty for you to write.
 
 ## Figure Sign & Element Data — provisional
@@ -207,12 +210,15 @@ geomancer figures                       # table of all 16 figures + meta
 geomancer figure  <name|pattern>        # detail view incl. house meanings
 geomancer systems                       # list registered systems
 
-Global flags: -s/--system (default traditional), --json, --color auto|always|never
+Global flags: -s/--system (default goldendawn), --json, --color auto|always|never, --symbols unicode|ascii
+cast flags:   -q/--significator N|TITLE, --nephews
 ```
 
 - **Input:** `internal/cli/input` defines `type MothersSource interface { Mothers() ([4]figure.Figure, error) }`.
   - `input.Prompt` (default): first a select for the System (skipped if `--system` is given;
-    shows each system's segment elements and Mother houses), then one huh v2 select per Mother, scrollable, with typeahead filtering on
+    shows each system's segment elements and Mother houses), then the Significator, the house
+    of the question (skipped if `--significator` is given; filterable by subject, not by number,
+    which the list shows as circled digits), then one huh v2 select per Mother, scrollable, with typeahead filtering on
     by name or pattern and a dot preview of the highlighted figure. Shift+Tab goes back. It draws
     on stderr, so `cast --json > file` stays clean. `ACCESSIBLE=1` switches to numbered,
     line-based prompts. Without arguments and outside a terminal, `cast` fails with a hint.

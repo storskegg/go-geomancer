@@ -43,8 +43,8 @@ func TestWidths(t *testing.T) {
 		max int
 	}{
 		"shield": {Shield(s, Options{}), Width},
-		"square": {Square(sq, Options{}), SquareWidth},
-		"ascii":  {Square(sq, Options{Symbols: ASCII}), SquareWidth},
+		"square": {Square(sq, 0, Options{}), SquareWidth},
+		"ascii":  {Square(sq, 0, Options{Symbols: ASCII}), SquareWidth},
 		"figure": {Figure(figure.Puer, traditional.System, e), Width},
 	} {
 		if w := lipgloss.Width(tt.out); w > tt.max {
@@ -95,7 +95,7 @@ func TestSquareSigns(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	out := plain(Square(sq, Options{}))
+	out := plain(Square(sq, 0, Options{}))
 	for _, h := range sq {
 		if !strings.Contains(out, fmt.Sprintf("House %d ", h.Number)) || !strings.Contains(out, h.Sign.String()) {
 			t.Errorf("square lacks house %d or its sign %v", h.Number, h.Sign)
@@ -106,7 +106,7 @@ func TestSquareSigns(t *testing.T) {
 	for i := range sq {
 		sq[i].Sign = nil
 	}
-	if out := plain(Square(sq, Options{})); strings.Count(out, "—") != 12 {
+	if out := plain(Square(sq, 0, Options{})); strings.Count(out, "—") != 12 {
 		t.Errorf("unsigned square has %d dashes, want 12", strings.Count(out, "—"))
 	}
 }
@@ -212,7 +212,7 @@ func testSquare() chart.Square {
 }
 
 func TestSquareTile(t *testing.T) {
-	out := Square(testSquare(), Options{})
+	out := Square(testSquare(), 0, Options{})
 	tests := []struct {
 		house int
 		row   int // line within the tile; 0 is the top border
@@ -252,7 +252,7 @@ func TestSquareTile(t *testing.T) {
 }
 
 func TestSquareTileASCII(t *testing.T) {
-	out := Square(testSquare(), Options{Symbols: ASCII})
+	out := Square(testSquare(), 0, Options{Symbols: ASCII})
 	if got, want := tile(out, 1)[2], "│Ta   Taurus    E│"; got != want {
 		t.Errorf("house sign row = %q, want %q", got, want)
 	}
@@ -266,10 +266,10 @@ func TestSquareTileASCII(t *testing.T) {
 
 func TestSquareLegend(t *testing.T) {
 	last := func(s string) string { lines := strings.Split(plain(s), "\n"); return lines[len(lines)-1] }
-	if got := last(Square(testSquare(), Options{})); got != "Left: sign · Right: its element · 🜂 Fire · 🜁 Air · 🜄 Water · 🜃 Earth" {
+	if got := last(Square(testSquare(), 0, Options{})); got != "Left: sign · Right: its element · 🜂 Fire · 🜁 Air · 🜄 Water · 🜃 Earth" {
 		t.Errorf("legend = %q", got)
 	}
-	if got := last(Square(testSquare(), Options{Symbols: ASCII})); got != "Left: sign · Right: its element · F Fire · A Air · W Water · E Earth" {
+	if got := last(Square(testSquare(), 0, Options{Symbols: ASCII})); got != "Left: sign · Right: its element · F Fire · A Air · W Water · E Earth" {
 		t.Errorf("ASCII legend = %q", got)
 	}
 }
@@ -298,7 +298,7 @@ func TestSquareLayout(t *testing.T) {
 		9: {0, 3}, 10: {0, 2}, 11: {0, 1}, // top, right to left
 		12: {1, 0}, // left side, upper
 	}
-	out := Square(testSquare(), Options{})
+	out := Square(testSquare(), 0, Options{})
 	lines := strings.Split(plain(out), "\n")
 	const height = 12
 	if got := len(lines); got != 5*height+1 {
@@ -345,7 +345,7 @@ func TestSquareLongNames(t *testing.T) {
 	sq := testSquare()
 	sq[0].Sign, sq[0].Figure = &sag, figure.CaputDraconis
 	sq[1].Figure = figure.FortunaMinor
-	out := Square(sq, Options{})
+	out := Square(sq, 0, Options{})
 	if got, want := tile(out, 1)[2], "│♐ Sagittarius 🜂│"; got != want {
 		t.Errorf("sign row = %q, want %q", got, want)
 	}
@@ -354,5 +354,36 @@ func TestSquareLongNames(t *testing.T) {
 	}
 	if got, want := tile(out, 2)[9], "│ Fortuna Minor  │"; got != want {
 		t.Errorf("name row = %q, want %q", got, want)
+	}
+}
+
+func TestSquareSignificator(t *testing.T) {
+	out := Square(testSquare(), 7, Options{})
+	if got := tile(out, 7)[0]; !strings.HasPrefix(got, "┏") {
+		t.Errorf("significator top border = %q, want heavy", got)
+	}
+	for _, n := range []int{1, 6, 8} {
+		if got := tile(out, n)[0]; !strings.HasPrefix(got, "╭") {
+			t.Errorf("house %d top border = %q, want rounded", n, got)
+		}
+	}
+	lines := strings.Split(plain(out), "\n")
+	if got := lines[len(lines)-1]; got != "Heavy border: significator" {
+		t.Errorf("last legend line = %q", got)
+	}
+	if w := lipgloss.Width(out); w > SquareWidth {
+		t.Errorf("square with significator is %d wide", w)
+	}
+
+	// Without one, no house is heavy and the legend has one line.
+	if out := plain(Square(testSquare(), 0, Options{})); strings.Contains(out, "┏") || strings.Contains(out, "Heavy") {
+		t.Error("square without a significator marks one")
+	}
+}
+
+func TestSignificatorLine(t *testing.T) {
+	got := plain(Significator(content.Signification{House: 7, Title: "Partnership", Text: "marriage, partners"}))
+	if want := "Significator: House 7 · Partnership — marriage, partners"; got != want {
+		t.Errorf("Significator = %q, want %q", got, want)
 	}
 }

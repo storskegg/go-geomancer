@@ -1,5 +1,67 @@
 {
   "locale": "en",
+  "significations": [
+    {
+      "house": 1,
+      "title": "Self",
+      "text": "the querent: life, body, health, appearance, character"
+    },
+    {
+      "house": 2,
+      "title": "Wealth",
+      "text": "money, possessions, earnings, gain and loss"
+    },
+    {
+      "house": 3,
+      "title": "Siblings",
+      "text": "brothers and sisters, neighbours, short journeys, letters, news"
+    },
+    {
+      "house": 4,
+      "title": "Home",
+      "text": "father, family, house and land, inheritance, endings, hidden things found"
+    },
+    {
+      "house": 5,
+      "title": "Children",
+      "text": "pregnancy, pleasure, love affairs, gambling, gifts, messengers"
+    },
+    {
+      "house": 6,
+      "title": "Illness",
+      "text": "sickness and its cure, work, servants and employees, small animals"
+    },
+    {
+      "house": 7,
+      "title": "Partnership",
+      "text": "marriage, partners, contracts, lawsuits, open enemies, thieves"
+    },
+    {
+      "house": 8,
+      "title": "Death",
+      "text": "death, fear, legacies, debts, other people's money"
+    },
+    {
+      "house": 9,
+      "title": "Journeys",
+      "text": "long journeys, foreign lands, religion, learning, dreams and visions"
+    },
+    {
+      "house": 10,
+      "title": "Honour",
+      "text": "career, reputation, rank, authority, employers, the mother"
+    },
+    {
+      "house": 11,
+      "title": "Friends",
+      "text": "friends, hopes and wishes, patrons, benefactors"
+    },
+    {
+      "house": 12,
+      "title": "Sorrow",
+      "text": "secret enemies, imprisonment, misfortune, self-undoing, large animals"
+    }
+  ],
   "figures": [
     {
       "figure": "Via",

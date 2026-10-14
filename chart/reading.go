@@ -9,8 +9,11 @@ import (
 // under a System.
 type Reading struct {
 	System string `json:"system"`
-	Shield Shield `json:"shield"`
-	Square Square `json:"square"`
+	// Significator is the house (1–12) of the matter asked about, or 0 if
+	// the reading has none. House 1 always signifies the querent.
+	Significator int    `json:"significator,omitempty"`
+	Shield       Shield `json:"shield"`
+	Square       Square `json:"square"`
 }
 
 // NewReading casts the Shield from the Mothers and builds the Astrological

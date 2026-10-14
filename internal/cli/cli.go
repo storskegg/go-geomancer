@@ -16,7 +16,7 @@ import (
 	"github.com/storskegg/go-geomancer/system"
 )
 
-const defaultSystem = "traditional"
+const defaultSystem = "goldendawn"
 
 type options struct {
 	system  string

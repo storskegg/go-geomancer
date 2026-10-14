@@ -3,6 +3,7 @@ package content
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"slices"
 	"strings"
 	"testing"
@@ -66,8 +67,8 @@ func TestParse(t *testing.T) {
 func TestParseInvalid(t *testing.T) {
 	tests := map[string]string{
 		"not JSON":     `{`,
-		"bad figure":   `{"locale": "en", "figures": [{"figure": "Nobody"}]}`,
-		"missing":      `{"locale": "en", "figures": [{"figure": "Via"}]}`,
+		"bad figure":   fileWith(allSignifications(), []string{`{"figure": "Nobody"}`}),
+		"missing":      fileWith(allSignifications(), []string{`{"figure": "Via"}`}),
 		"duplicate":    file(`{"figure": "Via"}`, `{"figure": "Via"}`),
 		"house 13":     file(`{"figure": "Via", "houses": {"13": ""}}`),
 		"house letter": file(`{"figure": "Via", "houses": {"one": ""}}`),
@@ -109,14 +110,29 @@ func file(extra ...string) string {
 			entries = append(entries, `{"figure": "`+f.Name()+`"}`)
 		}
 	}
-	return `{"locale": "en", "figures": [` + strings.Join(entries, ",") + `]}`
+	return fileWith(allSignifications(), entries)
+}
+
+// allSignifications returns a valid significations list as JSON.
+func allSignifications() string {
+	sigs := make([]string, 0, 12)
+	for h := 1; h <= 12; h++ {
+		sigs = append(sigs, fmt.Sprintf(`{"house": %d, "title": "Title %d", "text": "Text %d"}`, h, h, h))
+	}
+	return "[" + strings.Join(sigs, ",") + "]"
+}
+
+// fileWith assembles a content file from a significations JSON list and
+// figure entries.
+func fileWith(significations string, entries []string) string {
+	return `{"locale": "en", "significations": ` + significations + `, "figures": [` + strings.Join(entries, ",") + `]}`
 }
 
 func TestParseInvalidTypes(t *testing.T) {
 	tests := map[string]string{
 		"houses array":  file(`{"figure": "Via", "houses": ["a"]}`),
 		"short number":  file(`{"figure": "Via", "short": 5}`),
-		"figures empty": `{"locale": "en", "figures": []}`,
+		"figures empty": fileWith(allSignifications(), nil),
 		"house zero":    file(`{"figure": "Via", "houses": {"0": ""}}`),
 	}
 	for name, in := range tests {
@@ -179,6 +195,74 @@ func TestEmbeddedEntriesUseCanonicalNames(t *testing.T) {
 			if err != nil || f.Name() != e.Figure {
 				t.Errorf("%s.json: figure %q should be written %q", l, e.Figure, f.Name())
 			}
+		}
+	}
+}
+
+func TestSignifications(t *testing.T) {
+	s := Default()
+	sigs := s.Significations()
+	for i, sig := range sigs {
+		if sig.House != i+1 || sig.Title == "" || sig.Text == "" {
+			t.Errorf("signification %d = %+v", i+1, sig)
+		}
+	}
+	if sig, ok := s.Signification(7); !ok || sig.Title != "Partnership" {
+		t.Errorf("Signification(7) = %+v, %v", sig, ok)
+	}
+	for _, n := range []int{0, 13} {
+		if _, ok := s.Signification(n); ok {
+			t.Errorf("Signification(%d) ok", n)
+		}
+	}
+}
+
+func TestFindSignification(t *testing.T) {
+	s := Default()
+	tests := []struct {
+		in   string
+		want int // 0 = not found
+	}{
+		{"7", 7},
+		{" 12 ", 12},
+		{"partnership", 7},
+		{"HONOUR", 10},
+		{"13", 0},
+		{"marriage", 0}, // matches titles only, not text
+		{"", 0},
+	}
+	for _, tt := range tests {
+		sig, ok := s.FindSignification(tt.in)
+		if ok != (tt.want != 0) || sig.House != tt.want {
+			t.Errorf("FindSignification(%q) = house %d, %v; want %d", tt.in, sig.House, ok, tt.want)
+		}
+	}
+}
+
+func TestParseInvalidSignifications(t *testing.T) {
+	var figs []string
+	for _, f := range figure.All() {
+		figs = append(figs, `{"figure": "`+f.Name()+`"}`)
+	}
+	without := func(h int) string {
+		sigs := make([]string, 0, 12)
+		for i := 1; i <= 12; i++ {
+			if i != h {
+				sigs = append(sigs, fmt.Sprintf(`{"house": %d, "title": "T"}`, i))
+			}
+		}
+		return strings.Join(sigs, ",")
+	}
+	tests := map[string]string{
+		"missing":      "[" + without(5) + "]",
+		"duplicate":    "[" + without(0) + `,{"house": 3, "title": "T"}]`,
+		"out of range": "[" + without(12) + `,{"house": 13, "title": "T"}]`,
+		"no title":     "[" + without(12) + `,{"house": 12, "title": ""}]`,
+		"absent":       "[]",
+	}
+	for name, sigs := range tests {
+		if _, err := Parse([]byte(fileWith(sigs, figs))); !errors.Is(err, ErrInvalid) {
+			t.Errorf("%s: error = %v, want ErrInvalid", name, err)
 		}
 	}
 }

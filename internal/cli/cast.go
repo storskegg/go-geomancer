@@ -11,28 +11,35 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/storskegg/go-geomancer/chart"
+	"github.com/storskegg/go-geomancer/content"
 	"github.com/storskegg/go-geomancer/internal/cli/input"
 	"github.com/storskegg/go-geomancer/internal/cli/render"
 	"github.com/storskegg/go-geomancer/system"
 )
 
 func newCastCommand(opts *options) *cobra.Command {
-	var nephews bool
+	var (
+		nephews      bool
+		significator string
+	)
 	cmd := &cobra.Command{
 		Use:   "cast [M1 M2 M3 M4]",
 		Short: "Cast the Shield and Astrological Square from four Mothers",
 		Long: `Cast the Shield and Astrological Square from four Mothers.
 
 With no arguments, you are prompted to choose the system (unless --system
-is given) and then each Mother from a list; type to filter it by name or
-dot pattern. Set ACCESSIBLE=1 for numbered, line-based prompts instead.
+is given), the significator, the house of what you're asking about
+(unless --significator is given), and each Mother. Type to filter the
+houses by subject and the figures by name or dot pattern. Set ACCESSIBLE=1
+for numbered, line-based prompts instead.
 
 The Mothers may also be given as arguments, each as a dot pattern read
 head to feet ("1212"), as parities ("odd,even,odd,even"), or by name
 ("Amissio", "fortuna-major"). Quote names that contain spaces.`,
 		Example: `  geomancer cast
   geomancer cast 1212 1122 1111 2222
-  geomancer cast --system goldendawn amissio "fortuna minor" via populus`,
+  geomancer cast --significator partnership 1212 1122 1111 2222
+  geomancer cast --system traditional amissio "fortuna minor" via populus`,
 		Args: func(_ *cobra.Command, args []string) error {
 			if len(args) != 0 && len(args) != 4 {
 				return fmt.Errorf("expected 4 mothers or none to choose them interactively, got %d", len(args))
@@ -49,7 +56,15 @@ head to feet ("1212"), as parities ("odd,even,odd,even"), or by name
 				return err
 			}
 			ropts := render.Options{Nephews: nephews, Symbols: symbols}
-			src, err := mothersSource(cmd, args, &sys)
+			sig := 0
+			if significator != "" {
+				s, ok := content.Default().FindSignification(significator)
+				if !ok {
+					return fmt.Errorf("unknown significator %q: want a house number 1–12 or a title such as %q", significator, "partnership")
+				}
+				sig = s.House
+			}
+			src, err := mothersSource(cmd, args, &sys, &sig)
 			if err != nil {
 				return err
 			}
@@ -61,25 +76,32 @@ head to feet ("1212"), as parities ("odd,even,odd,even"), or by name
 			if err != nil {
 				return err
 			}
+			reading.Significator = sig
 			return opts.print(cmd, reading, func() string {
+				square := render.Heading("Astrological Square · " + sys.Name())
+				if s, ok := content.Default().Signification(reading.Significator); ok {
+					square += "\n" + render.Significator(s)
+				}
 				return strings.Join([]string{
 					render.Heading("The Shield"),
 					render.Shield(reading.Shield, ropts),
-					render.Heading("Astrological Square · " + sys.Name()),
-					render.Square(reading.Square, ropts),
+					square,
+					render.Square(reading.Square, reading.Significator, ropts),
 				}, "\n\n")
 			})
 		},
 	}
 	cmd.Flags().BoolVar(&nephews, "nephews", false, "call N1–N4 Nephews rather than Nieces")
+	cmd.Flags().StringVarP(&significator, "significator", "q", "", "house of the question: a number 1–12 or a title, such as partnership")
 	return cmd
 }
 
 // mothersSource reads the Mothers from args if given, and otherwise prompts
-// for them, and for the system unless --system was given; the chosen system
-// is written to sys. The prompt draws on stderr so that stdout carries only
-// the reading, e.g. for --json.
-func mothersSource(cmd *cobra.Command, args []string, sys *system.System) (input.MothersSource, error) {
+// for them, for the system unless --system was given, and for the
+// significator unless --significator was given; the choices are written to
+// sys and sig. The prompt draws on stderr so that stdout carries only the
+// reading, e.g. for --json.
+func mothersSource(cmd *cobra.Command, args []string, sys *system.System, sig *int) (input.MothersSource, error) {
 	if len(args) > 0 {
 		return input.Args(args), nil
 	}
@@ -87,9 +109,13 @@ func mothersSource(cmd *cobra.Command, args []string, sys *system.System) (input
 	if !p.Accessible && (!isTerminal(p.In) || !isTerminal(p.Out)) {
 		return nil, errors.New("no mothers given and not running in a terminal; pass four mothers as arguments")
 	}
-	p.System = sys
+	p.System, p.Significator = sys, sig
 	if !cmd.Flags().Changed("system") {
 		p.Systems = system.List()
+	}
+	if !cmd.Flags().Changed("significator") {
+		sigs := content.Default().Significations()
+		p.Significations = sigs[:]
 	}
 	return p, nil
 }

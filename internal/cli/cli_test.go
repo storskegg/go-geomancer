@@ -54,7 +54,8 @@ func TestGolden(t *testing.T) {
 		name string
 		args []string
 	}{
-		{"cast-traditional", []string{"cast", "1212", "1122", "1111", "2222"}},
+		{"cast-traditional", []string{"cast", "-s", "traditional", "1212", "1122", "1111", "2222"}},
+		{"cast-significator", []string{"cast", "--significator", "partnership", "1212", "1122", "1111", "2222"}},
 		{"cast-goldendawn-nephews", []string{"cast", "-s", "goldendawn", "--nephews", "amissio", "fortuna minor", "via", "populus"}},
 		{"cast-json", []string{"cast", "--json", "1212", "1122", "1111", "2222"}},
 		{"cast-ascii", []string{"cast", "--symbols", "ascii", "1212", "1122", "1111", "2222"}},
@@ -99,15 +100,38 @@ func TestCastJSONMatchesCore(t *testing.T) {
 	if err := json.Unmarshal([]byte(out), &r); err != nil {
 		t.Fatal(err)
 	}
-	if r.System != "traditional" || r.Shield.Judge.Name() != "Carcer" {
+	// Golden Dawn is the default system, and there's no significator unless
+	// one is given.
+	if r.System != "goldendawn" || r.Significator != 0 || r.Shield.Judge.Name() != "Carcer" {
 		t.Errorf("reading = %+v", r)
+	}
+}
+
+func TestSignificatorFlag(t *testing.T) {
+	for _, q := range []string{"7", "Partnership", "partnership"} {
+		out, err := execute(t, "cast", "--json", "-q", q, "1212", "1122", "1111", "2222")
+		if err != nil {
+			t.Fatal(err)
+		}
+		if !strings.Contains(out, `"significator": 7,`) {
+			t.Errorf("-q %s: output lacks the significator:\n%.200s", q, out)
+		}
+	}
+	out, err := execute(t, "cast", "--color", "never", "-q", "10", "1212", "1122", "1111", "2222")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, want := range []string{"Significator: House 10 · Honour", "┏━━", "Heavy border: significator"} {
+		if !strings.Contains(out, want) {
+			t.Errorf("output lacks %q", want)
+		}
 	}
 }
 
 // The prompts go to stderr, leaving stdout with only the reading.
 func TestCastPromptAccessible(t *testing.T) {
 	t.Setenv("ACCESSIBLE", "1")
-	stdout, stderr, err := runWithInput(t, "6\n8\n1\n2\n", "cast", "--json", "--system", "traditional")
+	stdout, stderr, err := runWithInput(t, "6\n8\n1\n2\n", "cast", "--json", "--system", "traditional", "--significator", "7")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -121,16 +145,20 @@ func TestCastPromptAccessible(t *testing.T) {
 	if !strings.Contains(stderr, "Mother 1 (M1)") {
 		t.Errorf("stderr lacks the prompt:\n%s", stderr)
 	}
-	if strings.Contains(stderr, "System") {
-		t.Errorf("prompted for the system despite --system:\n%s", stderr)
+	if strings.Contains(stderr, "System") || strings.Contains(stderr, "Significator") {
+		t.Errorf("prompted for the system or significator despite the flags:\n%s", stderr)
+	}
+	if r.System != "traditional" || r.Significator != 7 {
+		t.Errorf("system %s, significator %d", r.System, r.Significator)
 	}
 }
 
-// Without --system, the system is chosen first.
+// Without --system and --significator, both are chosen before the Mothers.
 func TestCastPromptSystem(t *testing.T) {
 	t.Setenv("ACCESSIBLE", "1")
-	// Systems are listed by ID: 1 is goldendawn.
-	stdout, stderr, err := runWithInput(t, "1\n6\n8\n1\n2\n", "cast", "--json")
+	// Systems are listed by ID, so 2 is traditional; houses are listed in
+	// order, so 9 is House 9.
+	stdout, stderr, err := runWithInput(t, "2\n9\n6\n8\n1\n2\n", "cast", "--json")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -138,11 +166,13 @@ func TestCastPromptSystem(t *testing.T) {
 	if err := json.Unmarshal([]byte(stdout), &r); err != nil {
 		t.Fatalf("stdout is not a reading: %v\n%s", err, stdout)
 	}
-	if r.System != "goldendawn" || r.Shield.Mothers[3].Name() != "Populus" {
-		t.Errorf("reading = %s, mothers %v", r.System, r.Shield.Mothers)
+	if r.System != "traditional" || r.Significator != 9 || r.Shield.Mothers[0].Name() != "Amissio" || r.Shield.Mothers[3].Name() != "Populus" {
+		t.Errorf("reading = %s, significator %d, mothers %v", r.System, r.Significator, r.Shield.Mothers)
 	}
-	if !strings.Contains(stderr, "System") {
-		t.Errorf("stderr lacks the system prompt:\n%s", stderr)
+	for _, want := range []string{"System", "Significator", "9. Journeys — long journeys"} {
+		if !strings.Contains(stderr, want) {
+			t.Errorf("stderr lacks %q:\n%s", want, stderr)
+		}
 	}
 }
 
@@ -177,6 +207,8 @@ func TestErrors(t *testing.T) {
 		{[]string{"figure", "nobody"}, `invalid figure: "nobody"`},
 		{[]string{"systems", "--color", "bogus"}, `invalid --color "bogus"`},
 		{[]string{"cast", "--symbols", "emoji", "1212", "1212", "1212", "1212"}, `unknown symbols "emoji"`},
+		{[]string{"cast", "-q", "13", "1212", "1212", "1212", "1212"}, `unknown significator "13"`},
+		{[]string{"cast", "-q", "marriage", "1212", "1212", "1212", "1212"}, `unknown significator "marriage"`},
 	}
 	for _, tt := range tests {
 		_, err := execute(t, tt.args...)

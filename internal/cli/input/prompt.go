@@ -10,6 +10,7 @@ import (
 	tea "charm.land/bubbletea/v2"
 	"charm.land/huh/v2"
 
+	"github.com/storskegg/go-geomancer/content"
 	"github.com/storskegg/go-geomancer/figure"
 	"github.com/storskegg/go-geomancer/internal/cli/render"
 	"github.com/storskegg/go-geomancer/position"
@@ -20,7 +21,8 @@ import (
 var ErrAborted = errors.New("cancelled")
 
 // Prompt asks for each Mother in turn with a scrollable select. Typing
-// filters the list by name or dot pattern.
+// filters the list by name or dot pattern. It can first ask for the system
+// and the significator.
 type Prompt struct {
 	In  io.Reader
 	Out io.Writer
@@ -32,6 +34,11 @@ type Prompt struct {
 	// of them, starting from *System, and the choice is written to System.
 	System  *system.System
 	Systems []system.System
+	// If Significations is non-empty, the user chooses the significator,
+	// the house of the question, from them; the choice (1–12) is written to
+	// Significator, whose value, if valid, is the initial choice.
+	Significator   *int
+	Significations []content.Signification
 }
 
 var ordinals = [4]string{"first", "second", "third", "fourth"}
@@ -48,6 +55,9 @@ func (p Prompt) Mothers() ([4]figure.Figure, error) {
 	var groups []*huh.Group
 	if len(p.Systems) > 0 {
 		groups = append(groups, systemGroup(p.System, p.Systems, p.Accessible))
+	}
+	if len(p.Significations) > 0 {
+		groups = append(groups, significatorGroup(p.Significator, p.Significations, p.Accessible))
 	}
 	groups = append(groups, motherGroups(&m, p.System, p.Accessible)...)
 	form := newForm(groups...).WithAccessible(p.Accessible).WithInput(in).WithOutput(p.Out)
@@ -104,6 +114,39 @@ func describeSystem(s system.System) string {
 	}
 	return strings.Join(segs, " · ") + "\nMothers in houses " + strings.Join(houses, ", ")
 }
+
+// significatorGroup offers the houses' significations, writing the chosen
+// house to n. Typing filters by title and signification, not by house
+// number: the list shows numbers as circled digits (⑦), which typed digits
+// don't match. Accessible prompts number the list 1–12 themselves.
+func significatorGroup(n *int, sigs []content.Signification, accessible bool) *huh.Group {
+	options := make([]huh.Option[int], 0, len(sigs))
+	for _, s := range sigs {
+		label := s.Title + " — " + s.Text
+		if !accessible {
+			label = circled(s.House) + " " + label
+		}
+		options = append(options, huh.NewOption(label, s.House))
+	}
+	if *n < 1 || *n > len(sigs) {
+		*n = sigs[0].House
+	}
+	sel := huh.NewSelect[int]().Options(options...).Value(n)
+	if accessible {
+		sel.Title("Significator").Description("Choose the house of what you're asking about.")
+		return huh.NewGroup(sel)
+	}
+	// As for the Mothers, the filter takes the select's title slot, so the
+	// prompt's own title goes in a note.
+	sel.Title("House").Filtering(true).Height(1 + len(sigs))
+	note := huh.NewNote().
+		Title("Significator").
+		Description("Choose the house of what you're asking about. Type to filter by subject.")
+	return huh.NewGroup(note, sel)
+}
+
+// circled returns n (1–20) as a circled digit, ① to ⑳.
+func circled(n int) string { return string(rune('①' + n - 1)) }
 
 // motherGroups builds one select per Mother, writing choices to m. sys,
 // which may be nil, supplies the previews' planets.

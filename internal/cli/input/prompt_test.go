@@ -12,6 +12,7 @@ import (
 	"charm.land/huh/v2"
 	"github.com/charmbracelet/x/ansi"
 
+	"github.com/storskegg/go-geomancer/content"
 	"github.com/storskegg/go-geomancer/figure"
 	"github.com/storskegg/go-geomancer/system"
 	"github.com/storskegg/go-geomancer/zodiac"
@@ -320,5 +321,70 @@ func TestPreviewFollowsSystem(t *testing.T) {
 	d.key(tea.KeyEnter)
 	if v := d.view(); !strings.Contains(v, "Mother 1 (M1)") || !strings.Contains(v, "Saturn") {
 		t.Errorf("preview after switching to Beta:\n%s", v)
+	}
+}
+
+func TestSignificatorSelect(t *testing.T) {
+	sigs := content.Default().Significations()
+	n := 0 // invalid: starts on House 1
+	d := newDriver(t, significatorGroup(&n, sigs[:], false))
+	if n != 1 {
+		t.Fatalf("initial choice = %d, want 1", n)
+	}
+	if v := d.view(); !strings.Contains(v, "Significator") || !strings.Contains(v, "⑦ Partnership — marriage") || !strings.Contains(v, "⑫ Sorrow") {
+		t.Errorf("initial view:\n%s", v)
+	}
+
+	// Typing matches subjects, not house numbers.
+	d.typeText("7")
+	if v := d.view(); strings.Contains(v, "⑦") {
+		t.Errorf("typing 7 matched House 7:\n%s", v)
+	}
+	d.key(tea.KeyBackspace)
+	d.typeText("thieves")
+	v := d.view()
+	if !strings.Contains(v, "⑦ Partnership") || strings.Contains(v, "① Self") {
+		t.Errorf("view after typing \"thieves\":\n%s", v)
+	}
+	d.key(tea.KeyEnter)
+	if n != 7 || d.form.State != huh.StateCompleted {
+		t.Errorf("chose %d, state %v; want 7, completed", n, d.form.State)
+	}
+}
+
+func TestSignificatorSelectKeepsInitialChoice(t *testing.T) {
+	sigs := content.Default().Significations()
+	n := 10
+	d := newDriver(t, significatorGroup(&n, sigs[:], false))
+	d.key(tea.KeyEnter)
+	if n != 10 {
+		t.Errorf("chose %d, want 10", n)
+	}
+}
+
+func TestPromptAccessibleSignificator(t *testing.T) {
+	sigs := content.Default().Significations()
+	n := 0
+	var out bytes.Buffer
+	p := Prompt{
+		In: strings.NewReader("11\n6\n8\n1\n2\n"), Out: &out, Accessible: true,
+		Significator: &n, Significations: sigs[:],
+	}
+	got, err := p.Mothers()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if n != 11 || got[0] != figure.Amissio || got[3] != figure.Populus {
+		t.Errorf("significator %d, mothers %v", n, got)
+	}
+	// Accessible prompts number the houses themselves, so no circled digits.
+	if s := out.String(); !strings.Contains(s, "11. Friends — friends") || strings.Contains(s, "⑪") {
+		t.Errorf("output:\n%s", s)
+	}
+}
+
+func TestCircled(t *testing.T) {
+	if got := circled(1) + circled(7) + circled(12); got != "①⑦⑫" {
+		t.Errorf("circled = %q", got)
 	}
 }

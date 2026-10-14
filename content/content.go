@@ -1,6 +1,6 @@
-// Package content provides the interpretive text for each figure: a short
-// qualitative description, a long description, and a meaning for each of the
-// twelve houses.
+// Package content provides interpretive text: the signification of each of
+// the twelve houses, and for each figure a short qualitative description, a
+// long description, and a meaning in each house.
 //
 // Text is kept in embedded JSON files under data/, one per locale (data/en.json).
 // Empty strings mean the text hasn't been written yet.
@@ -104,14 +104,50 @@ func (h *Houses) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// Set is the content for every figure in one locale.
+// Signification is what a house signifies: the matters a question placed
+// in that house concerns. Significations are the same in every system.
+type Signification struct {
+	House int    `json:"house"` // 1–12
+	Title string `json:"title"` // a word or two, such as "Partnership"
+	Text  string `json:"text"`  // the matters it covers
+}
+
+// Set is the content for one locale.
 type Set struct {
-	Locale  string
-	entries [16]Entry
+	Locale         string
+	entries        [16]Entry
+	significations [12]Signification
 }
 
 // For returns the entry for f.
 func (s *Set) For(f figure.Figure) Entry { return s.entries[f&0b1111] }
+
+// Significations returns the houses' significations, House 1 first.
+func (s *Set) Significations() [12]Signification { return s.significations }
+
+// Signification returns house n's signification. ok is false if n is not
+// 1–12.
+func (s *Set) Signification(n int) (sig Signification, ok bool) {
+	if n < 1 || n > len(s.significations) {
+		return Signification{}, false
+	}
+	return s.significations[n-1], true
+}
+
+// FindSignification returns the house whose number or title is name,
+// ignoring case: "7" and "partnership" both find House 7.
+func (s *Set) FindSignification(name string) (Signification, bool) {
+	name = strings.TrimSpace(name)
+	if n, err := strconv.Atoi(name); err == nil {
+		return s.Signification(n)
+	}
+	for _, sig := range s.significations {
+		if strings.EqualFold(sig.Title, name) {
+			return sig, true
+		}
+	}
+	return Signification{}, false
+}
 
 // Locales returns the locales with embedded content, sorted.
 func Locales() []string {
@@ -133,12 +169,13 @@ func Load(locale string) (*Set, error) {
 	return Parse(b)
 }
 
-// Parse decodes a content file and checks it describes each figure exactly
-// once.
+// Parse decodes a content file and checks it describes each figure and each
+// house's signification exactly once.
 func Parse(b []byte) (*Set, error) {
 	var file struct {
-		Locale  string  `json:"locale"`
-		Figures []Entry `json:"figures"`
+		Locale         string          `json:"locale"`
+		Significations []Signification `json:"significations"`
+		Figures        []Entry         `json:"figures"`
 	}
 	if err := json.Unmarshal(b, &file); err != nil {
 		if errors.Is(err, ErrInvalid) {
@@ -148,6 +185,25 @@ func Parse(b []byte) (*Set, error) {
 	}
 
 	s := &Set{Locale: file.Locale}
+	var houses [12]bool
+	for _, sig := range file.Significations {
+		switch {
+		case sig.House < 1 || sig.House > 12:
+			return nil, fmt.Errorf("%w: signification for house %d, want 1–12", ErrInvalid, sig.House)
+		case houses[sig.House-1]:
+			return nil, fmt.Errorf("%w: house %d's signification appears more than once", ErrInvalid, sig.House)
+		case sig.Title == "":
+			return nil, fmt.Errorf("%w: house %d's signification has no title", ErrInvalid, sig.House)
+		}
+		houses[sig.House-1] = true
+		s.significations[sig.House-1] = sig
+	}
+	for i, ok := range houses {
+		if !ok {
+			return nil, fmt.Errorf("%w: house %d's signification is missing", ErrInvalid, i+1)
+		}
+	}
+
 	var seen [16]bool
 	for _, e := range file.Figures {
 		if seen[e.Figure] {
