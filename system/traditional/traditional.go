@@ -26,6 +26,7 @@ var System system.System = &system.Mapping{
 	},
 	Signs:    signs,
 	Elements: elements,
+	Planets:  planets,
 }
 
 // signs gives each figure its zodiacal sign.
@@ -82,6 +83,30 @@ var elements = map[figure.Figure]zodiac.Element{
 	figure.Laetitia:      zodiac.Water,
 	figure.CaputDraconis: zodiac.Earth,
 	figure.CaudaDraconis: zodiac.Fire,
+}
+
+// planets gives each figure its planet, with the North and South Nodes for
+// Caput and Cauda Draconis.
+//
+// TODO: confirm against the traditional source. This is the standard
+// attribution, the same as the Golden Dawn table (see system/goldendawn).
+var planets = map[figure.Figure]zodiac.Planet{
+	figure.Via:           zodiac.Moon,
+	figure.Populus:       zodiac.Moon,
+	figure.Albus:         zodiac.Mercury,
+	figure.Conjunctio:    zodiac.Mercury,
+	figure.Puella:        zodiac.Venus,
+	figure.Amissio:       zodiac.Venus,
+	figure.FortunaMajor:  zodiac.Sun,
+	figure.FortunaMinor:  zodiac.Sun,
+	figure.Puer:          zodiac.Mars,
+	figure.Rubeus:        zodiac.Mars,
+	figure.Acquisitio:    zodiac.Jupiter,
+	figure.Laetitia:      zodiac.Jupiter,
+	figure.Carcer:        zodiac.Saturn,
+	figure.Tristitia:     zodiac.Saturn,
+	figure.CaputDraconis: zodiac.NorthNode,
+	figure.CaudaDraconis: zodiac.SouthNode,
 }
 
 func init() { system.Register(System) }

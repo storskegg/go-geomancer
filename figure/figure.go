@@ -5,8 +5,6 @@ package figure
 import (
 	"fmt"
 	"strings"
-
-	"github.com/storskegg/go-geomancer/zodiac"
 )
 
 // Figure is a geomantic figure stored as a 4-bit value. Head is the most
@@ -84,9 +82,6 @@ func (f Figure) Name() string {
 	}
 	return figures[f].name
 }
-
-// Planet returns the figure's planetary correspondence.
-func (f Figure) Planet() zodiac.Planet { return figures[f&mask].planet }
 
 // Pattern returns the figure as dot counts top to bottom, e.g. "1212" for
 // Amissio.

@@ -43,8 +43,8 @@ func TestHouses(t *testing.T) {
 	}
 }
 
-// Every figure has an element, and every figure but the lunar nodes has a
-// sign.
+// Every figure has an element and a planet, and every figure but the
+// Draconis pair has a sign.
 func TestFigureTablesComplete(t *testing.T) {
 	for _, f := range figure.All() {
 		_, hasSign := System.Sign(f)
@@ -54,5 +54,44 @@ func TestFigureTablesComplete(t *testing.T) {
 		if _, ok := System.Element(f); !ok {
 			t.Errorf("%v has no element", f)
 		}
+		if _, ok := System.Planet(f); !ok {
+			t.Errorf("%v has no planet", f)
+		}
+	}
+}
+
+func TestPlanets(t *testing.T) {
+	want := map[figure.Figure]zodiac.Planet{
+		figure.Via: zodiac.Moon, figure.Populus: zodiac.Moon,
+		figure.Albus: zodiac.Mercury, figure.Conjunctio: zodiac.Mercury,
+		figure.Puella: zodiac.Venus, figure.Amissio: zodiac.Venus,
+		figure.FortunaMajor: zodiac.Sun, figure.FortunaMinor: zodiac.Sun,
+		figure.Puer: zodiac.Mars, figure.Rubeus: zodiac.Mars,
+		figure.Acquisitio: zodiac.Jupiter, figure.Laetitia: zodiac.Jupiter,
+		figure.Carcer: zodiac.Saturn, figure.Tristitia: zodiac.Saturn,
+		figure.CaputDraconis: zodiac.NorthNode, figure.CaudaDraconis: zodiac.SouthNode,
+	}
+	if len(want) != 16 {
+		t.Fatalf("table has %d figures", len(want))
+	}
+	for f, planet := range want {
+		if got, ok := System.Planet(f); !ok || got != planet {
+			t.Errorf("Planet(%v) = %v, %v, want %v", f, got, ok, planet)
+		}
+	}
+}
+
+// The Draconis figures have elements and lunar nodes but no sign.
+func TestDraconis(t *testing.T) {
+	for _, f := range []figure.Figure{figure.CaputDraconis, figure.CaudaDraconis} {
+		if s, ok := System.Sign(f); ok {
+			t.Errorf("%v has sign %v, want none", f, s)
+		}
+	}
+	if e, _ := System.Element(figure.CaputDraconis); e != zodiac.Earth {
+		t.Errorf("Caput Draconis element = %v, want Earth", e)
+	}
+	if e, _ := System.Element(figure.CaudaDraconis); e != zodiac.Fire {
+		t.Errorf("Cauda Draconis element = %v, want Fire", e)
 	}
 }

@@ -33,10 +33,11 @@ func Figures(sys system.System) string {
 	for _, f := range figure.All() {
 		sign, hasSign := sys.Sign(f)
 		elem, hasElem := sys.Element(f)
+		planet, hasPlanet := sys.Planet(f)
 		t.Row(
 			f.Name(),
 			f.Pattern(),
-			f.Planet().String(),
+			orNone(planet.String(), hasPlanet),
 			orNone(sign.String(), hasSign),
 			orNone(elem.String(), hasElem),
 			strconv.Itoa(f.Dots()),
@@ -49,11 +50,12 @@ func Figures(sys system.System) string {
 func Figure(f figure.Figure, sys system.System, e content.Entry) string {
 	sign, hasSign := sys.Sign(f)
 	elem, hasElem := sys.Element(f)
+	planet, hasPlanet := sys.Planet(f)
 
 	field := func(k, v string) string { return labelStyle.Render(fmt.Sprintf("%-9s", k)) + " " + v }
 	facts := strings.Join([]string{
 		field("Pattern", f.Pattern()),
-		field("Planet", f.Planet().String()),
+		field("Planet", orNone(planet.String(), hasPlanet)),
 		field("Sign", orNone(sign.String(), hasSign)),
 		field("Element", orNone(elem.String(), hasElem)),
 		field("Dots", fmt.Sprintf("%d (%d odd, %d even)", f.Dots(), f.OddDots(), f.EvenDots())),

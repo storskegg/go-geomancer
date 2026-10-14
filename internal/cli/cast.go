@@ -82,8 +82,9 @@ func mothersSource(cmd *cobra.Command, args []string, sys *system.System) (input
 	if !p.Accessible && (!isTerminal(p.In) || !isTerminal(p.Out)) {
 		return nil, errors.New("no mothers given and not running in a terminal; pass four mothers as arguments")
 	}
+	p.System = sys
 	if !cmd.Flags().Changed("system") {
-		p.Systems, p.System = system.List(), sys
+		p.Systems = system.List()
 	}
 	return p, nil
 }

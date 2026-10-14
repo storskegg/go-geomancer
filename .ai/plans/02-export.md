@@ -54,11 +54,11 @@ Normalized tables:
 
 | Table | Rows | Columns |
 |---|---|---|
-| `figures` | 16 | `id` (0–15), `name`, `pattern`, `planet`, `dots`, `odd_dots`, `even_dots` |
+| `figures` | 16 | `id` (0–15), `name`, `pattern`, `dots`, `odd_dots`, `even_dots` |
 | `signs` | 12 | `id` (0 = Aries), `name` |
 | `positions` | 16 | `code` (M1…JM), `ordinal`, `principal` |
 | `systems` | per system | `id`, `name`, `head_element`, `neck_element`, `body_element`, `feet_element` |
-| `system_figures` | 16 per system | `system_id`, `figure_id`, `sign_id` (nullable), `element` (nullable) |
+| `system_figures` | 16 per system | `system_id`, `figure_id`, `sign_id`, `element`, `planet` (each nullable) |
 | `system_houses` | 12 per system | `system_id`, `position`, `house` |
 | `charts` | 65,536 | `id`, `m1`…`jm` (figure IDs); system-independent |
 | `chart_houses` | 12 per chart per system | `system_id`, `chart_id`, `house`, `position`, `figure_id`, `sign_id` (nullable) |

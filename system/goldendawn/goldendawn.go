@@ -26,14 +26,16 @@ var System system.System = &system.Mapping{
 	},
 	Signs:    signs,
 	Elements: elements,
+	Planets:  planets,
 }
 
 // signs gives each figure the sign ruled by its planet, one figure per sign
 // with the Moon's and the Sun's pairs sharing Cancer and Leo.
 //
 // TODO: verify against the preferred Golden Dawn source. Caput Draconis and
-// Cauda Draconis are commonly given no sign; when one falls in the 1st House
-// the Astrological Square has no signs.
+// Cauda Draconis have no sign (they correspond to the lunar nodes; see
+// planets); when one falls in the 1st House the Astrological Square has no
+// signs.
 var signs = map[figure.Figure]zodiac.Sign{
 	figure.Puer:         zodiac.Aries,
 	figure.Amissio:      zodiac.Taurus,
@@ -52,10 +54,11 @@ var signs = map[figure.Figure]zodiac.Sign{
 }
 
 // elements gives each figure the element of its sign, with Earth for Caput
-// Draconis and Fire for Cauda Draconis.
+// Draconis and Fire for Cauda Draconis. Regardie doesn't give the latter
+// two, but they're attested elsewhere.
 //
-// TODO: verify against the preferred Golden Dawn source. These were derived
-// from the signs above rather than taken from a published table.
+// TODO: verify the rest against the preferred Golden Dawn source. They were
+// derived from the signs above rather than taken from a published table.
 var elements = map[figure.Figure]zodiac.Element{
 	figure.Puer:          zodiac.Fire,
 	figure.Amissio:       zodiac.Earth,
@@ -73,6 +76,28 @@ var elements = map[figure.Figure]zodiac.Element{
 	figure.Laetitia:      zodiac.Water,
 	figure.CaputDraconis: zodiac.Earth,
 	figure.CaudaDraconis: zodiac.Fire,
+}
+
+// planets gives each figure its planet: two figures for each of the seven
+// classical planets, and the North and South Nodes for Caput and Cauda
+// Draconis.
+var planets = map[figure.Figure]zodiac.Planet{
+	figure.Via:           zodiac.Moon,
+	figure.Populus:       zodiac.Moon,
+	figure.Albus:         zodiac.Mercury,
+	figure.Conjunctio:    zodiac.Mercury,
+	figure.Puella:        zodiac.Venus,
+	figure.Amissio:       zodiac.Venus,
+	figure.FortunaMajor:  zodiac.Sun,
+	figure.FortunaMinor:  zodiac.Sun,
+	figure.Puer:          zodiac.Mars,
+	figure.Rubeus:        zodiac.Mars,
+	figure.Acquisitio:    zodiac.Jupiter,
+	figure.Laetitia:      zodiac.Jupiter,
+	figure.Carcer:        zodiac.Saturn,
+	figure.Tristitia:     zodiac.Saturn,
+	figure.CaputDraconis: zodiac.NorthNode,
+	figure.CaudaDraconis: zodiac.SouthNode,
 }
 
 func init() { system.Register(System) }

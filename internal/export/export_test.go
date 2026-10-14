@@ -369,7 +369,11 @@ func TestSQLite(t *testing.T) {
 	if got := queryInt(t, db, "SELECT count(*) FROM system_figures WHERE system_id = 'goldendawn' AND sign_id IS NULL"); got != 2 {
 		t.Errorf("%d Golden Dawn figures without signs, want 2 (the nodes)", got)
 	}
-	if got := queryInt(t, db, "SELECT count(*) FROM system_figures WHERE system_id = 'unsigned' AND sign_id IS NULL AND element IS NULL"); got != 16 {
+	var node string
+	if err := db.QueryRow("SELECT planet FROM system_figures WHERE system_id = 'goldendawn' AND figure_id = ?", int(figure.CaputDraconis)).Scan(&node); err != nil || node != "North Node" {
+		t.Errorf("Caput Draconis planet = %q, %v", node, err)
+	}
+	if got := queryInt(t, db, "SELECT count(*) FROM system_figures WHERE system_id = 'unsigned' AND sign_id IS NULL AND element IS NULL AND planet IS NULL"); got != 16 {
 		t.Errorf("%d unmapped figures for the unsigned system, want 16", got)
 	}
 

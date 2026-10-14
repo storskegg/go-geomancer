@@ -24,7 +24,6 @@ CREATE TABLE figures (
 	id        INTEGER PRIMARY KEY CHECK (id BETWEEN 0 AND 15),
 	name      TEXT    NOT NULL UNIQUE,
 	pattern   TEXT    NOT NULL UNIQUE,
-	planet    TEXT    NOT NULL,
 	dots      INTEGER NOT NULL,
 	odd_dots  INTEGER NOT NULL,
 	even_dots INTEGER NOT NULL
@@ -55,6 +54,7 @@ CREATE TABLE system_figures (
 	figure_id INTEGER NOT NULL REFERENCES figures (id),
 	sign_id   INTEGER REFERENCES signs (id),
 	element   TEXT,
+	planet    TEXT,
 	PRIMARY KEY (system_id, figure_id)
 );
 
@@ -180,8 +180,8 @@ func (w *sqliteWriter) exec(query string, args ...any) error {
 
 func (w *sqliteWriter) insertLookups() error {
 	for _, f := range figure.All() {
-		if err := w.exec(insertSQL("figures", 7),
-			int(f), f.Name(), f.Pattern(), f.Planet().String(), f.Dots(), f.OddDots(), f.EvenDots()); err != nil {
+		if err := w.exec(insertSQL("figures", 6),
+			int(f), f.Name(), f.Pattern(), f.Dots(), f.OddDots(), f.EvenDots()); err != nil {
 			return err
 		}
 	}
@@ -207,14 +207,17 @@ func (w *sqliteWriter) insertSystem(s system.System) error {
 		return err
 	}
 	for _, f := range figure.All() {
-		var sign, elem any
+		var sign, elem, planet any // NULL when unmapped
 		if v, ok := s.Sign(f); ok {
 			sign = int(v)
 		}
 		if v, ok := s.Element(f); ok {
 			elem = v.String()
 		}
-		if err := w.exec(insertSQL("system_figures", 4), s.ID(), int(f), sign, elem); err != nil {
+		if v, ok := s.Planet(f); ok {
+			planet = v.String()
+		}
+		if err := w.exec(insertSQL("system_figures", 5), s.ID(), int(f), sign, elem, planet); err != nil {
 			return err
 		}
 	}

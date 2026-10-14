@@ -4,8 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"testing"
-
-	"github.com/storskegg/go-geomancer/zodiac"
 )
 
 func TestFigures(t *testing.T) {
@@ -13,25 +11,24 @@ func TestFigures(t *testing.T) {
 		fig     Figure
 		name    string
 		pattern string
-		planet  zodiac.Planet
 		dots    int
 	}{
-		{Via, "Via", "1111", zodiac.Moon, 4},
-		{Populus, "Populus", "2222", zodiac.Moon, 8},
-		{Albus, "Albus", "2212", zodiac.Mercury, 7},
-		{Conjunctio, "Conjunctio", "2112", zodiac.Mercury, 6},
-		{Puella, "Puella", "1211", zodiac.Venus, 5},
-		{Amissio, "Amissio", "1212", zodiac.Venus, 6},
-		{FortunaMajor, "Fortuna Major", "2211", zodiac.Sun, 6},
-		{FortunaMinor, "Fortuna Minor", "1122", zodiac.Sun, 6},
-		{Puer, "Puer", "1121", zodiac.Mars, 5},
-		{Rubeus, "Rubeus", "2122", zodiac.Mars, 7},
-		{Acquisitio, "Acquisitio", "2121", zodiac.Jupiter, 6},
-		{Laetitia, "Laetitia", "1222", zodiac.Jupiter, 7},
-		{Carcer, "Carcer", "1221", zodiac.Saturn, 6},
-		{Tristitia, "Tristitia", "2221", zodiac.Saturn, 7},
-		{CaputDraconis, "Caput Draconis", "2111", zodiac.NorthNode, 5},
-		{CaudaDraconis, "Cauda Draconis", "1112", zodiac.SouthNode, 5},
+		{Via, "Via", "1111", 4},
+		{Populus, "Populus", "2222", 8},
+		{Albus, "Albus", "2212", 7},
+		{Conjunctio, "Conjunctio", "2112", 6},
+		{Puella, "Puella", "1211", 5},
+		{Amissio, "Amissio", "1212", 6},
+		{FortunaMajor, "Fortuna Major", "2211", 6},
+		{FortunaMinor, "Fortuna Minor", "1122", 6},
+		{Puer, "Puer", "1121", 5},
+		{Rubeus, "Rubeus", "2122", 7},
+		{Acquisitio, "Acquisitio", "2121", 6},
+		{Laetitia, "Laetitia", "1222", 7},
+		{Carcer, "Carcer", "1221", 6},
+		{Tristitia, "Tristitia", "2221", 7},
+		{CaputDraconis, "Caput Draconis", "2111", 5},
+		{CaudaDraconis, "Cauda Draconis", "1112", 5},
 	}
 	if len(tests) != 16 {
 		t.Fatalf("expected 16 cases, got %d", len(tests))
@@ -43,9 +40,6 @@ func TestFigures(t *testing.T) {
 			}
 			if got := tt.fig.Pattern(); got != tt.pattern {
 				t.Errorf("Pattern() = %q, want %q", got, tt.pattern)
-			}
-			if got := tt.fig.Planet(); got != tt.planet {
-				t.Errorf("Planet() = %v, want %v", got, tt.planet)
 			}
 			if got := tt.fig.Dots(); got != tt.dots {
 				t.Errorf("Dots() = %d, want %d", got, tt.dots)

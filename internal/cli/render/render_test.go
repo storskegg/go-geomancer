@@ -13,6 +13,7 @@ import (
 	"github.com/storskegg/go-geomancer/figure"
 	"github.com/storskegg/go-geomancer/system"
 	"github.com/storskegg/go-geomancer/system/traditional"
+	"github.com/storskegg/go-geomancer/zodiac"
 )
 
 func TestGlyph(t *testing.T) {
@@ -155,5 +156,26 @@ func TestOrNone(t *testing.T) {
 func TestHeading(t *testing.T) {
 	if got := plain(Heading("The Shield")); got != "The Shield" {
 		t.Errorf("Heading = %q", got)
+	}
+}
+
+// A system that gives no planets shows dashes rather than a planet.
+func TestUnmappedPlanet(t *testing.T) {
+	bare := &system.Mapping{
+		Slug:            "bare",
+		Title:           "Bare",
+		SegmentElements: [4]zodiac.Element{zodiac.Fire, zodiac.Air, zodiac.Water, zodiac.Earth},
+		Houses:          [12]int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12},
+	}
+	for line := range strings.SplitSeq(plain(Figures(bare)), "\n") {
+		if strings.Contains(line, "Fortuna Major") && strings.Count(line, "—") != 3 {
+			t.Errorf("row %q: want dashes for planet, sign and element", line)
+		}
+	}
+	if out := plain(Figure(figure.Puer, bare, content.Entry{Figure: figure.Puer})); !strings.Contains(out, "Planet    —") {
+		t.Errorf("detail lacks an unmapped planet:\n%s", out)
+	}
+	if out := plain(Figure(figure.CaputDraconis, traditional.System, content.Entry{})); !strings.Contains(out, "Planet    North Node") || !strings.Contains(out, "Sign      —") {
+		t.Errorf("Caput Draconis detail:\n%s", out)
 	}
 }

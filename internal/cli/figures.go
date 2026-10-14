@@ -16,7 +16,7 @@ import (
 type figureJSON struct {
 	Name     string          `json:"name"`
 	Pattern  string          `json:"pattern"`
-	Planet   zodiac.Planet   `json:"planet"`
+	Planet   *zodiac.Planet  `json:"planet,omitempty"`
 	Sign     *zodiac.Sign    `json:"sign,omitempty"`
 	Element  *zodiac.Element `json:"element,omitempty"`
 	Dots     int             `json:"dots"`
@@ -29,7 +29,6 @@ func newFigureJSON(f figure.Figure, sys system.System) figureJSON {
 	j := figureJSON{
 		Name:     f.Name(),
 		Pattern:  f.Pattern(),
-		Planet:   f.Planet(),
 		Dots:     f.Dots(),
 		OddDots:  f.OddDots(),
 		EvenDots: f.EvenDots(),
@@ -39,6 +38,9 @@ func newFigureJSON(f figure.Figure, sys system.System) figureJSON {
 	}
 	if e, ok := sys.Element(f); ok {
 		j.Element = &e
+	}
+	if p, ok := sys.Planet(f); ok {
+		j.Planet = &p
 	}
 	return j
 }

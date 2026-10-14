@@ -30,6 +30,10 @@ type System interface {
 	// Element returns the figure's element. ok is false if the system
 	// doesn't give the figure an element.
 	Element(figure.Figure) (element zodiac.Element, ok bool)
+	// Planet returns the figure's planet, or for Caput and Cauda Draconis
+	// usually the lunar node. ok is false if the system doesn't give the
+	// figure a planet.
+	Planet(figure.Figure) (planet zodiac.Planet, ok bool)
 }
 
 // Mapping is a System defined by lookup tables.
@@ -41,10 +45,11 @@ type Mapping struct {
 	// Houses gives the house (1–12) of each principal position, indexed
 	// position.M1 through position.N4.
 	Houses [12]int
-	// Signs and Elements give the figures' correspondences. Figures missing
-	// from a map are unmapped.
+	// Signs, Elements and Planets give the figures' correspondences.
+	// Figures missing from a map are unmapped.
 	Signs    map[figure.Figure]zodiac.Sign
 	Elements map[figure.Figure]zodiac.Element
+	Planets  map[figure.Figure]zodiac.Planet
 }
 
 func (m Mapping) ID() string   { return m.Slug }
@@ -68,4 +73,9 @@ func (m Mapping) Sign(f figure.Figure) (zodiac.Sign, bool) {
 func (m Mapping) Element(f figure.Figure) (zodiac.Element, bool) {
 	e, ok := m.Elements[f]
 	return e, ok
+}
+
+func (m Mapping) Planet(f figure.Figure) (zodiac.Planet, bool) {
+	p, ok := m.Planets[f]
+	return p, ok
 }

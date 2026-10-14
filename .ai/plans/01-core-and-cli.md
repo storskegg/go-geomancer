@@ -23,11 +23,12 @@ only so the core is shaped correctly for it; it gets its own plan later.
 ### Assumptions (correct me if wrong)
 
 - **Terminology:** a *Figure* is one of the 16 dot patterns (Populus, Via, …) and carries
-  name/planet/descriptions. A *Position* is a slot in the chart (M1…N4, WR, WL, J, JM) that holds a
+  name/descriptions. A *Position* is a slot in the chart (M1…N4, WR, WL, J, JM) that holds a
   Figure. "Tetragram" stays as a synonym for Figure in UI copy.
 - **The Shield shows the Judgement (JM)** in addition to the items listed in `index.md`.
 - **Niece/Nephew** is a display label only (CLI flag/config); the core always uses `N1…N4`.
-- **Planet** is intrinsic to the Figure (traditional and GD agree), not system-owned.
+- **Planet**, like sign and element, is system-owned (`System.Planet`). Both systems give the
+  standard attribution, with the North and South Nodes for Caput and Cauda Draconis.
   **Element per figure** varies between sources, so it is system-owned alongside Sign.
 
 ## Repository Layout
@@ -72,14 +73,13 @@ func (f Figure) Dots() int             // total
 func (f Figure) OddDots() int          // qty odd segments
 func (f Figure) EvenDots() int         // qty even segments * 2
 func (f Figure) Name() string          // Latin name
-func (f Figure) Planet() zodiac.Planet
 func Parse(s string) (Figure, error)   // "1212", "odd,even,odd,even", or a figure name
 func All() [16]Figure
 ```
 
 Odd=1 makes figure addition a plain XOR, and calculating the Daughters a 4×4 bit-matrix transpose.
 
-The 16 figures (Head→Feet, 1 = odd, 2 = even), with their planets:
+The 16 figures (Head→Feet, 1 = odd, 2 = even), with the planets both systems give them:
 
 | Figure | Pattern | Planet |
 |---|---|---|
@@ -117,6 +117,7 @@ type System interface {
     House(position.Position) (int, bool)             // 1–12; false for non-principal positions
     Sign(figure.Figure) (zodiac.Sign, bool)          // false = unmapped
     Element(figure.Figure) (zodiac.Element, bool)    // false = unmapped
+    Planet(figure.Figure) (zodiac.Planet, bool)      // false = unmapped
 }
 
 // Mapping implements System from lookup tables; both shipped systems use it.
@@ -263,6 +264,6 @@ Milestones 1–6 are complete.
 ## Open Items
 
 1. Verify the provisional sign and element tables (see above), especially Traditional.
-2. Confirm the assumptions above: Figure/Position terms, JM in the Shield, planet intrinsic vs
-   element system-owned.
+2. Confirm the assumptions above: Figure/Position terms, JM in the Shield.
 3. Mothers input methods beyond the prompt and arguments. *(not blocking)*
+4. House signs when Caput or Cauda Draconis is in the 1st House. Currently no house gets a sign.

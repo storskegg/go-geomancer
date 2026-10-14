@@ -71,6 +71,9 @@ func testSystem(id, name string) *system.Mapping {
 		Title:           name,
 		SegmentElements: [4]zodiac.Element{zodiac.Fire, zodiac.Air, zodiac.Water, zodiac.Earth},
 		Houses:          [12]int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12},
+		Planets: map[figure.Figure]zodiac.Planet{
+			figure.FortunaMinor: zodiac.Sun, figure.Amissio: zodiac.Venus, figure.Puer: zodiac.Mars,
+		},
 	}
 }
 
@@ -130,7 +133,8 @@ func (d *driver) view() string { return ansi.Strip(d.form.View()) }
 
 func TestPromptInteractive(t *testing.T) {
 	var m [4]figure.Figure
-	d := newDriver(t, motherGroups(&m, false)...)
+	sys := system.System(testSystem("a", "Alpha"))
+	d := newDriver(t, motherGroups(&m, &sys, false)...)
 
 	if v := d.view(); !strings.Contains(v, "Mother 1 (M1)") || !strings.Contains(v, "Via") {
 		t.Fatalf("initial view:\n%s", v)
@@ -216,7 +220,7 @@ func TestPromptGoBack(t *testing.T) {
 	a, b := testSystem("a", "Alpha"), testSystem("b", "Beta")
 	chosen := system.System(a)
 	var m [4]figure.Figure
-	d := newDriver(t, append([]*huh.Group{systemGroup(&chosen, []system.System{a, b}, false)}, motherGroups(&m, false)...)...)
+	d := newDriver(t, append([]*huh.Group{systemGroup(&chosen, []system.System{a, b}, false)}, motherGroups(&m, &chosen, false)...)...)
 
 	d.key(tea.KeyEnter)
 	if v := d.view(); !strings.Contains(v, "Mother 1 (M1)") {
@@ -238,7 +242,7 @@ func TestPromptGoBack(t *testing.T) {
 
 func TestPromptAbort(t *testing.T) {
 	var m [4]figure.Figure
-	d := newDriver(t, motherGroups(&m, false)...)
+	d := newDriver(t, motherGroups(&m, nil, false)...)
 	d.send(tea.KeyPressMsg{Code: 'c', Mod: tea.ModCtrl})
 	if d.form.State != huh.StateAborted {
 		t.Errorf("state after ctrl+c = %v, want aborted", d.form.State)
@@ -280,7 +284,7 @@ func TestByteReader(t *testing.T) {
 }
 
 func TestPreview(t *testing.T) {
-	got := ansi.Strip(preview(figure.Puer)) // 1121
+	got := ansi.Strip(preview(figure.Puer, testSystem("a", "Alpha"))) // 1121
 	want := strings.Join([]string{
 		"  ●     Puer",
 		"  ●     1121",
@@ -289,5 +293,32 @@ func TestPreview(t *testing.T) {
 	}, "\n")
 	if got != want {
 		t.Errorf("preview =\n%q\nwant\n%q", got, want)
+	}
+
+	// Without a system, or with one that gives no planet, the line is blank.
+	for _, sys := range []system.System{nil, testSystem("a", "Alpha")} {
+		if got := ansi.Strip(preview(figure.Via, sys)); strings.Split(got, "\n")[2] != "  ●     " {
+			t.Errorf("preview(Via) planet line = %q, want blank", strings.Split(got, "\n")[2])
+		}
+	}
+}
+
+// Going back and choosing another system updates the preview's planet.
+func TestPreviewFollowsSystem(t *testing.T) {
+	a, b := testSystem("a", "Alpha"), testSystem("b", "Beta")
+	b.Planets = map[figure.Figure]zodiac.Planet{figure.Via: zodiac.Saturn}
+	chosen := system.System(a)
+	var m [4]figure.Figure
+	d := newDriver(t, append([]*huh.Group{systemGroup(&chosen, []system.System{a, b}, false)}, motherGroups(&m, &chosen, false)...)...)
+
+	d.key(tea.KeyEnter) // Alpha; M1 starts on Via, which Alpha gives no planet
+	if v := d.view(); strings.Contains(v, "Saturn") {
+		t.Fatalf("Alpha preview shows Beta's planet:\n%s", v)
+	}
+	d.send(tea.KeyPressMsg{Code: tea.KeyTab, Mod: tea.ModShift})
+	d.key(tea.KeyDown) // Beta
+	d.key(tea.KeyEnter)
+	if v := d.view(); !strings.Contains(v, "Mother 1 (M1)") || !strings.Contains(v, "Saturn") {
+		t.Errorf("preview after switching to Beta:\n%s", v)
 	}
 }

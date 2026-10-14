@@ -18,6 +18,7 @@ func validMapping(id string) Mapping {
 		Houses:          [12]int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12},
 		Signs:           map[figure.Figure]zodiac.Sign{figure.Via: zodiac.Cancer},
 		Elements:        map[figure.Figure]zodiac.Element{figure.Via: zodiac.Water},
+		Planets:         map[figure.Figure]zodiac.Planet{figure.Via: zodiac.Moon},
 	}
 }
 
@@ -26,9 +27,9 @@ func TestValidateValid(t *testing.T) {
 		t.Error(err)
 	}
 	empty := validMapping("test")
-	empty.Signs, empty.Elements = nil, nil
+	empty.Signs, empty.Elements, empty.Planets = nil, nil, nil
 	if err := Validate(empty); err != nil {
-		t.Errorf("empty sign and element tables: %v", err)
+		t.Errorf("empty correspondence tables: %v", err)
 	}
 }
 
@@ -48,6 +49,7 @@ func TestValidateInvalid(t *testing.T) {
 		{"duplicate house", func(m *Mapping) { m.Houses[position.N4] = 1 }, "both placed in house 1"},
 		{"invalid sign", func(m *Mapping) { m.Signs[figure.Puer] = zodiac.Sign(12) }, "invalid sign"},
 		{"invalid element", func(m *Mapping) { m.Elements[figure.Puer] = zodiac.Element(4) }, "invalid element"},
+		{"invalid planet", func(m *Mapping) { m.Planets[figure.Puer] = zodiac.Planet(9) }, "invalid planet"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -169,6 +171,19 @@ func TestValidateReportsAllProblems(t *testing.T) {
 func TestMappingName(t *testing.T) {
 	if got := validMapping("test").Name(); got != "Test" {
 		t.Errorf("Name() = %q", got)
+	}
+}
+
+func TestMappingPlanet(t *testing.T) {
+	m := validMapping("test")
+	if p, ok := m.Planet(figure.Via); !ok || p != zodiac.Moon {
+		t.Errorf("Planet(Via) = %v, %v", p, ok)
+	}
+	if _, ok := m.Planet(figure.Puer); ok {
+		t.Error("Planet(Puer) ok, want unmapped")
+	}
+	if _, ok := (Mapping{}).Planet(figure.Puer); ok {
+		t.Error("Planet on nil table ok, want unmapped")
 	}
 }
 

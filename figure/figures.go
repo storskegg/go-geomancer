@@ -1,7 +1,5 @@
 package figure
 
-import "github.com/storskegg/go-geomancer/zodiac"
-
 // The sixteen figures. Comments give the dot pattern top to bottom.
 const (
 	Populus       Figure = 0b0000 // 2222
@@ -24,31 +22,31 @@ const (
 
 type info struct {
 	name    string
-	planet  zodiac.Planet
 	aliases []string
 }
 
 // figures is indexed by Figure value.
 var figures = [16]info{
-	Populus:       {name: "Populus", planet: zodiac.Moon},
-	Via:           {name: "Via", planet: zodiac.Moon},
-	Albus:         {name: "Albus", planet: zodiac.Mercury},
-	Conjunctio:    {name: "Conjunctio", planet: zodiac.Mercury, aliases: []string{"Coniunctio"}},
-	Puella:        {name: "Puella", planet: zodiac.Venus},
-	Amissio:       {name: "Amissio", planet: zodiac.Venus},
-	FortunaMajor:  {name: "Fortuna Major", planet: zodiac.Sun, aliases: []string{"Fortuna Maior"}},
-	FortunaMinor:  {name: "Fortuna Minor", planet: zodiac.Sun},
-	Puer:          {name: "Puer", planet: zodiac.Mars},
-	Rubeus:        {name: "Rubeus", planet: zodiac.Mars},
-	Acquisitio:    {name: "Acquisitio", planet: zodiac.Jupiter},
-	Laetitia:      {name: "Laetitia", planet: zodiac.Jupiter, aliases: []string{"Letitia"}},
-	Carcer:        {name: "Carcer", planet: zodiac.Saturn},
-	Tristitia:     {name: "Tristitia", planet: zodiac.Saturn},
-	CaputDraconis: {name: "Caput Draconis", planet: zodiac.NorthNode},
-	CaudaDraconis: {name: "Cauda Draconis", planet: zodiac.SouthNode},
+	Populus:       {name: "Populus"},
+	Via:           {name: "Via"},
+	Albus:         {name: "Albus"},
+	Conjunctio:    {name: "Conjunctio", aliases: []string{"Coniunctio"}},
+	Puella:        {name: "Puella"},
+	Amissio:       {name: "Amissio"},
+	FortunaMajor:  {name: "Fortuna Major", aliases: []string{"Fortuna Maior"}},
+	FortunaMinor:  {name: "Fortuna Minor"},
+	Puer:          {name: "Puer"},
+	Rubeus:        {name: "Rubeus"},
+	Acquisitio:    {name: "Acquisitio"},
+	Laetitia:      {name: "Laetitia", aliases: []string{"Letitia"}},
+	Carcer:        {name: "Carcer"},
+	Tristitia:     {name: "Tristitia"},
+	CaputDraconis: {name: "Caput Draconis"},
+	CaudaDraconis: {name: "Cauda Draconis"},
 }
 
-// All returns the sixteen figures, grouped in pairs by planet.
+// All returns the sixteen figures, in traditional order: paired by planet,
+// the Moon's first.
 func All() [16]Figure {
 	return [16]Figure{
 		Via, Populus,

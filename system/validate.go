@@ -20,9 +20,9 @@ var ErrInvalid = errors.New("system: invalid system")
 //   - each segment has a distinct, valid element
 //   - the twelve principal positions are placed one per house, 1–12, and no
 //     other position is placed in a house
-//   - any signs and elements it gives figures are valid
+//   - any signs, elements and planets it gives figures are valid
 //
-// Sign and element tables may be partial or empty.
+// Sign, element and planet tables may be partial or empty.
 func Validate(s System) error {
 	var problems []string
 	add := func(format string, args ...any) { problems = append(problems, fmt.Sprintf(format, args...)) }
@@ -70,6 +70,9 @@ func Validate(s System) error {
 		}
 		if e, ok := s.Element(f); ok && !e.Valid() {
 			add("%v has invalid element %d", f, e)
+		}
+		if p, ok := s.Planet(f); ok && !p.Valid() {
+			add("%v has invalid planet %d", f, p)
 		}
 	}
 

@@ -27,10 +27,11 @@ type Prompt struct {
 	// Accessible replaces the interactive select with numbered, line-based
 	// prompts suitable for screen readers.
 	Accessible bool
-	// If Systems is non-empty, the user first chooses one of them. System
-	// holds the initial choice and receives the final one.
-	Systems []system.System
+	// System is the system the Mothers are cast under; previews show its
+	// correspondences. If Systems is non-empty, the user first chooses one
+	// of them, starting from *System, and the choice is written to System.
 	System  *system.System
+	Systems []system.System
 }
 
 var ordinals = [4]string{"first", "second", "third", "fourth"}
@@ -48,7 +49,7 @@ func (p Prompt) Mothers() ([4]figure.Figure, error) {
 	if len(p.Systems) > 0 {
 		groups = append(groups, systemGroup(p.System, p.Systems, p.Accessible))
 	}
-	groups = append(groups, motherGroups(&m, p.Accessible)...)
+	groups = append(groups, motherGroups(&m, p.System, p.Accessible)...)
 	form := newForm(groups...).WithAccessible(p.Accessible).WithInput(in).WithOutput(p.Out)
 	return m, formError(form.Run())
 }
@@ -104,8 +105,9 @@ func describeSystem(s system.System) string {
 	return strings.Join(segs, " · ") + "\nMothers in houses " + strings.Join(houses, ", ")
 }
 
-// motherGroups builds one select per Mother, writing choices to m.
-func motherGroups(m *[4]figure.Figure, accessible bool) []*huh.Group {
+// motherGroups builds one select per Mother, writing choices to m. sys,
+// which may be nil, supplies the previews' planets.
+func motherGroups(m *[4]figure.Figure, sys *system.System, accessible bool) []*huh.Group {
 	all := figure.All()
 	options := make([]huh.Option[figure.Figure], 0, len(all))
 	for _, f := range all {
@@ -126,10 +128,11 @@ func motherGroups(m *[4]figure.Figure, accessible bool) []*huh.Group {
 		}
 		// While filtering, the select shows its filter input in place of its
 		// title, so the Mother's name goes in a note above it. The value tracks the
-		// cursor, so the preview follows it.
+		// cursor, so the preview follows it, and the system, which the user may
+		// go back and change.
 		sel.Title("Figure").
 			Filtering(true).
-			DescriptionFunc(func() string { return preview(m[i]) }, &m[i]).
+			DescriptionFunc(func() string { return preview(m[i], deref(sys)) }, []any{&m[i], sys}).
 			Height(selectHeight)
 		note := huh.NewNote().
 			Title(title).
@@ -168,10 +171,24 @@ func (b byteReader) Read(p []byte) (int, error) {
 	return b.r.Read(p)
 }
 
-// preview shows a figure's dots beside its name and planet.
-func preview(f figure.Figure) string {
+func deref(sys *system.System) system.System {
+	if sys == nil {
+		return nil
+	}
+	return *sys
+}
+
+// preview shows a figure's dots beside its name, pattern and, if sys is
+// non-nil and gives it one, planet.
+func preview(f figure.Figure, sys system.System) string {
+	planet := ""
+	if sys != nil {
+		if p, ok := sys.Planet(f); ok {
+			planet = p.String()
+		}
+	}
 	glyph := strings.Split(render.Glyph(f), "\n")
-	info := []string{f.Name(), f.Pattern(), f.Planet().String(), ""}
+	info := []string{f.Name(), f.Pattern(), planet, ""}
 	lines := make([]string, len(glyph))
 	for i := range glyph {
 		lines[i] = glyph[i] + "   " + info[i]
