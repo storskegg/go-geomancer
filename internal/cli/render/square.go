@@ -6,6 +6,7 @@ import (
 
 	"charm.land/lipgloss/v2"
 
+	"github.com/storskegg/go-geomancer/aspect"
 	"github.com/storskegg/go-geomancer/chart"
 	"github.com/storskegg/go-geomancer/content"
 	"github.com/storskegg/go-geomancer/zodiac"
@@ -53,7 +54,9 @@ const (
 
 // Square draws the Astrological Square, its houses arranged around the edge
 // of a 5×5 grid (see squareCells), with a legend for the symbols. The
-// significator's house (1–12; 0 for none) has a heavy border.
+// significator's house (1–12; 0 for none) has a heavy border and is
+// labelled, and each house aspecting it is labelled with its aspect and
+// side.
 //
 // Each house shows its number, its sign, the figure, and the figure's name
 // and position. Signs' symbols run down the left edge and elements down the
@@ -67,6 +70,16 @@ func Square(sq chart.Square, significator int, opts Options) string {
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(borderStyle.GetForeground())
 	sigCell := cell.Border(lipgloss.ThickBorder()).BorderForeground(headingStyle.GetForeground())
+
+	// The line under each house's sign labels its relationship to the
+	// significator.
+	labels := map[int]string{}
+	if aspects, err := aspect.Houses(significator); err == nil {
+		labels[significator] = sigLabelStyle.Render("Significator")
+		for _, a := range aspects {
+			labels[a.House] = opts.aspectLabel(a)
+		}
+	}
 
 	var grid [5][5]string
 	for i, h := range sq {
@@ -84,7 +97,7 @@ func Square(sq chart.Square, significator int, opts Options) string {
 		lines := append([]string{
 			labelStyle.Render(fmt.Sprintf("House %d", h.Number)),
 			opts.signRow(h.Sign, signName),
-			"",
+			labels[h.Number],
 		}, dots...)
 		lines = append(lines,
 			"",
@@ -118,7 +131,11 @@ func Square(sq chart.Square, significator int, opts Options) string {
 		}
 		rows = append(rows, lipgloss.JoinHorizontal(lipgloss.Top, cells...))
 	}
-	return lipgloss.JoinVertical(lipgloss.Left, rows...) + "\n" + opts.squareLegend(significator != 0)
+	legend := opts.squareLegend()
+	if len(labels) > 0 {
+		legend += "\n" + opts.aspectLegend()
+	}
+	return lipgloss.JoinVertical(lipgloss.Left, rows...) + "\n" + legend
 }
 
 // Significator describes the significator, for display above the Square.
@@ -144,14 +161,10 @@ func edgeRow(left, centre, right string) string {
 		lipgloss.PlaceHorizontal(rightWidth, lipgloss.Right, right)
 }
 
-func (o Options) squareLegend(significator bool) string {
+func (o Options) squareLegend() string {
 	items := make([]string, 0, 4)
 	for _, e := range zodiac.Elements() {
 		items = append(items, o.elementSymbol(e)+" "+e.String())
 	}
-	legend := mutedStyle.Render("Left: sign · Right: its element · ") + strings.Join(items, mutedStyle.Render(" · "))
-	if significator {
-		legend += "\n" + mutedStyle.Render("Heavy border: significator")
-	}
-	return legend
+	return mutedStyle.Render("Left: sign · Right: its element · ") + strings.Join(items, mutedStyle.Render(" · "))
 }

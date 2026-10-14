@@ -239,8 +239,15 @@ cast flags:   -q/--significator N|TITLE, --nephews
     traditional square-chart drawing can come later.
   - `--symbols unicode|ascii`: signs as ♈–♓ or two-letter abbreviations, elements as alchemical
     triangles (🜂 🜁 🜄 🜃) or letters, for fonts that lack the triangles.
-  - The relationship between a figure and its house (geomantic aspects) is deferred until its
-    rules are worked out.
+  - Geomantic aspects to the significator (package `aspect`, the same in every system): counting
+    around the houses and including the significator, the Sextile is 2 houses away, the Square
+    3, the Trine 4, the Opposition 6. Each but the Opposition falls on both sides; the Dexter
+    (clockwise, counting back through the house numbers) is the stronger of the pair. The
+    Opposition and Square are stressful; the Trine and Sextile ease the situation, the Sextile
+    mildly benevolent. A reading lists them in `Reading.Aspects`. On the Square, the line under
+    each house's sign labels the significator and each aspect (e.g. "□ Square ↻"), coloured red
+    for stressful and green for easing; a summary line and legend explain them.
+  - The relationship between a figure and its own house is still deferred.
   - `--json` prints the `chart.Reading` so the CLI and API output can be compared.
   - Output goes through a `colorprofile` writer, so styling is stripped or downsampled
     automatically. `--color` overrides that.

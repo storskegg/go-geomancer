@@ -3,8 +3,10 @@ package chart
 import (
 	"encoding/json"
 	"errors"
+	"strings"
 	"testing"
 
+	"github.com/storskegg/go-geomancer/aspect"
 	"github.com/storskegg/go-geomancer/figure"
 	"github.com/storskegg/go-geomancer/position"
 	"github.com/storskegg/go-geomancer/system"
@@ -219,4 +221,28 @@ func checkSquare(t *testing.T, s Shield, sq Square, sys system.System) bool {
 		}
 	}
 	return true
+}
+
+func TestSetSignificator(t *testing.T) {
+	r, err := NewReading(exampleMothers, goldendawn.System)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := r.SetSignificator(10); err != nil {
+		t.Fatal(err)
+	}
+	if r.Significator != 10 || len(r.Aspects) != 7 || r.Aspects[0].House != 4 {
+		t.Errorf("significator %d, aspects %v", r.Significator, r.Aspects)
+	}
+	if err := r.SetSignificator(13); !errors.Is(err, aspect.ErrInvalidHouse) || r.Significator != 10 {
+		t.Errorf("SetSignificator(13) = %v, left significator %d", err, r.Significator)
+	}
+	if err := r.SetSignificator(0); err != nil || r.Significator != 0 || r.Aspects != nil {
+		t.Errorf("SetSignificator(0) = %v, left %d %v", err, r.Significator, r.Aspects)
+	}
+
+	b, _ := json.Marshal(r)
+	if strings.Contains(string(b), "aspects") || strings.Contains(string(b), "significator") {
+		t.Errorf("reading without a significator marshals them: %.120s", b)
+	}
 }

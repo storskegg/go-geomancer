@@ -8,6 +8,7 @@ import (
 	"charm.land/lipgloss/v2"
 	"github.com/charmbracelet/x/ansi"
 
+	"github.com/storskegg/go-geomancer/aspect"
 	"github.com/storskegg/go-geomancer/chart"
 	"github.com/storskegg/go-geomancer/content"
 	"github.com/storskegg/go-geomancer/figure"
@@ -368,16 +369,84 @@ func TestSquareSignificator(t *testing.T) {
 		}
 	}
 	lines := strings.Split(plain(out), "\n")
-	if got := lines[len(lines)-1]; got != "Heavy border: significator" {
-		t.Errorf("last legend line = %q", got)
+	legend := lines[len(lines)-2:]
+	if want := "Heavy border: significator · ☍ Opposition, □ Square: stressful · △ Trine, ⚹ Sextile: easing"; legend[0] != want {
+		t.Errorf("legend line = %q, want %q", legend[0], want)
+	}
+	if want := "↻ Dexter (clockwise), the stronger of a pair · ↺ Sinister"; legend[1] != want {
+		t.Errorf("legend line = %q, want %q", legend[1], want)
 	}
 	if w := lipgloss.Width(out); w > SquareWidth {
 		t.Errorf("square with significator is %d wide", w)
 	}
 
-	// Without one, no house is heavy and the legend has one line.
-	if out := plain(Square(testSquare(), 0, Options{})); strings.Contains(out, "┏") || strings.Contains(out, "Heavy") {
+	// Without one, no house is heavy or labelled, and the legend has one
+	// line.
+	if out := plain(Square(testSquare(), 0, Options{})); strings.Contains(out, "┏") || strings.Contains(out, "Heavy") || strings.Contains(out, "Square ↻") {
 		t.Error("square without a significator marks one")
+	}
+}
+
+// With the significator in House 10, the line under each house's sign
+// names its relationship to it.
+func TestSquareAspectLabels(t *testing.T) {
+	const labelRow = 3 // border, number, sign, label
+	tests := []struct {
+		opts   Options
+		labels map[int]string
+	}{
+		{Options{}, map[int]string{
+			10: "  Significator  ",
+			4:  "  ☍ Opposition  ",
+			7:  "   □ Square ↻   ", 1: "   □ Square ↺   ",
+			6: "   △ Trine ↻    ", 2: "   △ Trine ↺    ",
+			8: "  ⚹ Sextile ↻   ", 12: "  ⚹ Sextile ↺   ",
+			3: "", 5: "", 9: "", 11: "",
+		}},
+		{Options{Symbols: ASCII}, map[int]string{
+			4: "   Opposition   ",
+			7: "   Square dex   ", 1: "   Square sin   ",
+			12: "  Sextile sin   ",
+		}},
+	}
+	for _, tt := range tests {
+		out := Square(testSquare(), 10, tt.opts)
+		for house, want := range tt.labels {
+			got := tile(out, house)[labelRow]
+			got = strings.TrimSuffix(strings.TrimPrefix(got, "│"), "│")
+			got = strings.TrimSuffix(strings.TrimPrefix(got, "┃"), "┃")
+			if want == "" {
+				if strings.TrimSpace(got) != "" {
+					t.Errorf("%v: house %d label = %q, want none", tt.opts.Symbols, house, got)
+				}
+				continue
+			}
+			if got != want {
+				t.Errorf("%v: house %d label = %q, want %q", tt.opts.Symbols, house, got, want)
+			}
+		}
+		if w := lipgloss.Width(out); w > SquareWidth {
+			t.Errorf("%v: square is %d wide", tt.opts.Symbols, w)
+		}
+	}
+}
+
+func TestAspectsLine(t *testing.T) {
+	houses, err := aspect.Houses(10)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got, want := plain(Aspects(houses, Options{})), "Aspects: ☍ Opposition 4 · □ Square 7 ↻, 1 ↺ · △ Trine 6 ↻, 2 ↺ · ⚹ Sextile 8 ↻, 12 ↺"; got != want {
+		t.Errorf("Aspects =\n%q\nwant\n%q", got, want)
+	}
+	if got, want := plain(Aspects(houses, Options{Symbols: ASCII})), "Aspects: Opposition 4 · Square 7 dex, 1 sin · Trine 6 dex, 2 sin · Sextile 8 dex, 12 sin"; got != want {
+		t.Errorf("ASCII Aspects =\n%q\nwant\n%q", got, want)
+	}
+}
+
+func TestSideMark(t *testing.T) {
+	if got := (Options{}).sideMark(aspect.Neither); got != "" {
+		t.Errorf("sideMark(Neither) = %q", got)
 	}
 }
 

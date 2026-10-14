@@ -113,15 +113,19 @@ func TestSignificatorFlag(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		if !strings.Contains(out, `"significator": 7,`) {
-			t.Errorf("-q %s: output lacks the significator:\n%.200s", q, out)
+		var r chart.Reading
+		if err := json.Unmarshal([]byte(out), &r); err != nil {
+			t.Fatal(err)
+		}
+		if r.Significator != 7 || len(r.Aspects) != 7 || r.Aspects[0].House != 1 {
+			t.Errorf("-q %s: significator %d, aspects %v", q, r.Significator, r.Aspects)
 		}
 	}
 	out, err := execute(t, "cast", "--color", "never", "-q", "10", "1212", "1122", "1111", "2222")
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, want := range []string{"Significator: House 10 · Honour", "┏━━", "Heavy border: significator"} {
+	for _, want := range []string{"Significator: House 10 · Honour", "Aspects: ☍ Opposition 4 · □ Square 7 ↻, 1 ↺", "┏━━", "Heavy border: significator", "  Significator  "} {
 		if !strings.Contains(out, want) {
 			t.Errorf("output lacks %q", want)
 		}

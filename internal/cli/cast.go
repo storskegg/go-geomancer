@@ -76,11 +76,13 @@ head to feet ("1212"), as parities ("odd,even,odd,even"), or by name
 			if err != nil {
 				return err
 			}
-			reading.Significator = sig
+			if err := reading.SetSignificator(sig); err != nil {
+				return err
+			}
 			return opts.print(cmd, reading, func() string {
 				square := render.Heading("Astrological Square · " + sys.Name())
 				if s, ok := content.Default().Signification(reading.Significator); ok {
-					square += "\n" + render.Significator(s)
+					square += "\n" + render.Significator(s) + "\n" + render.Aspects(reading.Aspects, ropts)
 				}
 				return strings.Join([]string{
 					render.Heading("The Shield"),
