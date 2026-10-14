@@ -114,10 +114,13 @@ type System interface {
     Name() string // "Traditional", "Golden Dawn"
 
     SegmentElement(figure.Segment) zodiac.Element
-    House(chart.Position) int                        // 1–12, principal positions only
+    House(position.Position) (int, bool)             // 1–12; false for non-principal positions
     Sign(figure.Figure) (zodiac.Sign, bool)          // false = unmapped
     Element(figure.Figure) (zodiac.Element, bool)    // false = unmapped
 }
+
+// Mapping implements System from lookup tables; both shipped systems use it.
+func Validate(System) error // ID, distinct segment elements, houses 1–12 one-to-one
 
 func Register(System)
 func Get(id string) (System, bool)
@@ -126,8 +129,7 @@ func List() []System
 
 Each system subpackage registers itself in `init()`, and the apps blank-import the systems they use.
 The `(value, ok)` returns let the Golden Dawn skeleton compile and run before it has data.
-`House` takes `chart.Position`, so `Position` should live in a small leaf package (or `figure`) to
-avoid an import cycle. That gets settled at implementation time.
+`Position` lives in the leaf package `position`, so `system` and `chart` don't import each other.
 
 ### `chart`
 
