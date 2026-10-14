@@ -33,7 +33,8 @@ var (
 	}
 )
 
-// Width is the width of the widest output: the Shield and the Square.
+// Width is the width of the Shield, which text is wrapped to. The Square is
+// wider; see SquareWidth.
 const Width = 8 * cellWidth
 
 const (

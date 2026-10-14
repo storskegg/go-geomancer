@@ -38,14 +38,17 @@ func TestWidths(t *testing.T) {
 	e := content.Entry{Figure: figure.Puer, Long: strings.Repeat("A long description that must wrap. ", 20)}
 	e.Houses[0] = strings.Repeat("A long house meaning that must wrap. ", 10)
 
-	for name, out := range map[string]string{
-		"shield": Shield(s, Options{}),
-		"square": Square(sq, Options{}),
-		"ascii":  Square(sq, Options{Symbols: ASCII}),
-		"figure": Figure(figure.Puer, traditional.System, e),
+	for name, tt := range map[string]struct {
+		out string
+		max int
+	}{
+		"shield": {Shield(s, Options{}), Width},
+		"square": {Square(sq, Options{}), SquareWidth},
+		"ascii":  {Square(sq, Options{Symbols: ASCII}), SquareWidth},
+		"figure": {Figure(figure.Puer, traditional.System, e), Width},
 	} {
-		if w := lipgloss.Width(out); w > Width {
-			t.Errorf("%s is %d columns wide, want at most %d", name, w, Width)
+		if w := lipgloss.Width(tt.out); w > tt.max {
+			t.Errorf("%s is %d columns wide, want at most %d", name, w, tt.max)
 		}
 	}
 }
@@ -186,7 +189,7 @@ func TestUnmappedPlanet(t *testing.T) {
 // tile returns the plain lines of house n's tile (1–12) in a rendered Square.
 func tile(out string, n int) []string {
 	lines := strings.Split(plain(out), "\n")
-	row, col := (n-1)/4, (n-1)%4
+	row, col := squareCells[n-1][0], squareCells[n-1][1]
 	const height = 12 // border, 10 lines, border
 	var t []string
 	for _, l := range lines[row*height : row*height+height] {
@@ -275,5 +278,55 @@ func TestParseSymbols(t *testing.T) {
 	}
 	if got := Symbols(9).String(); got != "Symbols(9)" {
 		t.Errorf("Symbols(9).String() = %q", got)
+	}
+}
+
+// The houses run counterclockwise around a 5×5 grid from the middle of the
+// left side, with the corners and the centre empty.
+func TestSquareLayout(t *testing.T) {
+	want := map[int][2]int{ // house: row, column
+		1: {2, 0}, 2: {3, 0}, // left side, middle and lower
+		3: {4, 1}, 4: {4, 2}, 5: {4, 3}, // bottom, left to right
+		6: {3, 4}, 7: {2, 4}, 8: {1, 4}, // right side, lower to upper
+		9: {0, 3}, 10: {0, 2}, 11: {0, 1}, // top, right to left
+		12: {1, 0}, // left side, upper
+	}
+	out := Square(testSquare(), Options{})
+	lines := strings.Split(plain(out), "\n")
+	const height = 12
+	if got := len(lines); got != 5*height+1 {
+		t.Fatalf("%d lines, want %d (5 rows of houses and a legend)", got, 5*height+1)
+	}
+	cellAt := func(r, c int) []string {
+		var cell []string
+		for _, l := range lines[r*height : (r+1)*height] {
+			cell = append(cell, ansi.Cut(l, c*houseWidth, (c+1)*houseWidth))
+		}
+		return cell
+	}
+
+	occupied := map[[2]int]bool{}
+	for house, rc := range want {
+		occupied[rc] = true
+		label := fmt.Sprintf("House %d ", house)
+		if cell := cellAt(rc[0], rc[1]); !strings.Contains(cell[1], label) {
+			t.Errorf("row %d column %d holds %q, want House %d", rc[0], rc[1], strings.TrimSpace(cell[1]), house)
+		}
+	}
+	for r := range 5 {
+		for c := range 5 {
+			if occupied[[2]int{r, c}] {
+				continue
+			}
+			for _, l := range cellAt(r, c) {
+				if strings.TrimSpace(l) != "" {
+					t.Errorf("row %d column %d should be empty, has %q", r, c, l)
+					break
+				}
+			}
+		}
+	}
+	if w := lipgloss.Width(strings.Join(lines[:5*height], "\n")); w != SquareWidth {
+		t.Errorf("square is %d wide, want %d", w, SquareWidth)
 	}
 }

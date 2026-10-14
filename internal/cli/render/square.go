@@ -10,8 +10,30 @@ import (
 	"github.com/storskegg/go-geomancer/zodiac"
 )
 
-// houseWidth includes the border; four houses match the Shield's width.
+// houseWidth includes the border.
 const houseWidth = 2 * cellWidth
+
+// SquareWidth is the width of the Square: five houses across.
+const SquareWidth = 5 * houseWidth
+
+// squareCells gives each house's row and column in the Square's 5×5 grid;
+// index i is House i+1. The houses run counterclockwise around the edge,
+// three to a side, from House 1 at the middle of the left side, as in an
+// astrological chart with the Ascendant on the left. The corners and the
+// 3×3 centre are empty:
+//
+//	    11  10   9
+//	12              8
+//	 1              7
+//	 2              6
+//	     3   4   5
+var squareCells = [12][2]int{
+	{2, 0}, {3, 0}, // left side, middle to bottom
+	{4, 1}, {4, 2}, {4, 3}, // bottom, left to right
+	{3, 4}, {2, 4}, {1, 4}, // right side, bottom to top
+	{0, 3}, {0, 2}, {0, 1}, // top, right to left
+	{1, 0}, // left side, top
+}
 
 // A house's inner width splits into a column at each edge for symbols and
 // a centre for text, with a space either side of the centre. The centre
@@ -22,8 +44,8 @@ const (
 	centreWidth = innerWidth - 2*edgeWidth - 2
 )
 
-// Square draws the Astrological Square as a grid of houses, four per row,
-// with a legend for the symbols.
+// Square draws the Astrological Square, its houses arranged around the edge
+// of a 5×5 grid (see squareCells), with a legend for the symbols.
 //
 // Each house shows its number and sign, the figure, and the figure's name
 // and position. The house's sign symbol and element flank the sign's name;
@@ -36,23 +58,36 @@ func Square(sq chart.Square, opts Options) string {
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(borderStyle.GetForeground())
 
-	rows := make([]string, 0, 3)
-	for r := range 3 {
-		cells := make([]string, 0, 4)
-		for _, h := range sq[r*4 : r*4+4] {
-			signName := mutedStyle.Render(none)
-			if h.Sign != nil {
-				signName = h.Sign.String()
+	var grid [5][5]string
+	for i, h := range sq {
+		signName := mutedStyle.Render(none)
+		if h.Sign != nil {
+			signName = h.Sign.String()
+		}
+		r, c := squareCells[i][0], squareCells[i][1]
+		grid[r][c] = cell.Render(strings.Join([]string{
+			labelStyle.Render(fmt.Sprintf("House %d", h.Number)),
+			opts.signRow(h.Sign, signName),
+			"",
+			Glyph(h.Figure),
+			"",
+			opts.signRow(h.FigureSign, nameStyle.Render(h.Figure.Name())),
+			edgeRow("", mutedStyle.Render(h.Position.String()), ""),
+		}, "\n"))
+	}
+
+	// Empty cells are blank blocks the size of a house.
+	blankLine := strings.Repeat(" ", houseWidth)
+	blank := strings.TrimSuffix(strings.Repeat(blankLine+"\n", lipgloss.Height(grid[2][0])), "\n")
+
+	rows := make([]string, 0, len(grid))
+	for _, row := range grid {
+		cells := make([]string, 0, len(row))
+		for _, c := range row {
+			if c == "" {
+				c = blank
 			}
-			cells = append(cells, cell.Render(strings.Join([]string{
-				labelStyle.Render(fmt.Sprintf("House %d", h.Number)),
-				opts.signRow(h.Sign, signName),
-				"",
-				Glyph(h.Figure),
-				"",
-				opts.signRow(h.FigureSign, nameStyle.Render(h.Figure.Name())),
-				edgeRow("", mutedStyle.Render(h.Position.String()), ""),
-			}, "\n")))
+			cells = append(cells, c)
 		}
 		rows = append(rows, lipgloss.JoinHorizontal(lipgloss.Top, cells...))
 	}
