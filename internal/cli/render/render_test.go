@@ -193,7 +193,8 @@ func tile(out string, n int) []string {
 	const height = 12 // border, 10 lines, border
 	var t []string
 	for _, l := range lines[row*height : row*height+height] {
-		t = append(t, ansi.Cut(l, col*houseWidth, (col+1)*houseWidth))
+		start := col * (houseWidth + houseGap)
+		t = append(t, ansi.Cut(l, start, start+houseWidth))
 	}
 	return t
 }
@@ -218,16 +219,22 @@ func TestSquareTile(t *testing.T) {
 		want  string
 	}{
 		// The house's sign symbol and element flank the sign's name.
-		{1, 2, "│♉     Taurus      🜃│"},
-		// The figure's sign symbol and element flank the figure's name.
-		{1, 9, "│♎    Amissio      🜁│"},
-		// The position row leaves the right edge free.
-		{1, 10, "│         M1         │"},
-		// A figure without a sign has blank edges.
-		{2, 2, "│♌      Leo        🜂│"},
-		{2, 9, "│   Cauda Draconis   │"},
+		{1, 2, "│♉   Taurus    🜃│"},
+		// The figure's sign symbol and element flank the top row of its
+		// dots (Amissio, 1212).
+		{1, 4, "│♎      ●      🜁│"},
+		// The next row leaves the right edge free for a further element,
+		// and the dots stay aligned with the row above.
+		{1, 5, "│      ●   ●     │"},
+		// The name and position get the full width.
+		{1, 9, "│    Amissio     │"},
+		{1, 10, "│       M1       │"},
+		// A figure without a sign has blank edges (Cauda Draconis, 1112).
+		{2, 2, "│♌     Leo     🜂│"},
+		{2, 4, "│        ●       │"},
+		{2, 9, "│ Cauda Draconis │"},
 		// A house without a sign shows a dash and blank edges.
-		{3, 2, "│         —          │"},
+		{3, 2, "│        —       │"},
 	}
 	for _, tt := range tests {
 		lines := tile(out, tt.house)
@@ -246,11 +253,11 @@ func TestSquareTile(t *testing.T) {
 
 func TestSquareTileASCII(t *testing.T) {
 	out := Square(testSquare(), Options{Symbols: ASCII})
-	if got, want := tile(out, 1)[2], "│Ta     Taurus      E│"; got != want {
+	if got, want := tile(out, 1)[2], "│Ta   Taurus    E│"; got != want {
 		t.Errorf("house sign row = %q, want %q", got, want)
 	}
-	if got, want := tile(out, 1)[9], "│Li    Amissio      A│"; got != want {
-		t.Errorf("figure row = %q, want %q", got, want)
+	if got, want := tile(out, 1)[4], "│Li      ●      A│"; got != want {
+		t.Errorf("figure sign row = %q, want %q", got, want)
 	}
 	if strings.ContainsAny(plain(out), "♈♉♊♋♌♍♎♏♐♑♒♓🜂🜁🜄🜃") {
 		t.Error("ASCII square contains Unicode symbols")
@@ -300,7 +307,8 @@ func TestSquareLayout(t *testing.T) {
 	cellAt := func(r, c int) []string {
 		var cell []string
 		for _, l := range lines[r*height : (r+1)*height] {
-			cell = append(cell, ansi.Cut(l, c*houseWidth, (c+1)*houseWidth))
+			start := c * (houseWidth + houseGap)
+			cell = append(cell, ansi.Cut(l, start, start+houseWidth))
 		}
 		return cell
 	}
@@ -326,7 +334,25 @@ func TestSquareLayout(t *testing.T) {
 			}
 		}
 	}
-	if w := lipgloss.Width(strings.Join(lines[:5*height], "\n")); w != SquareWidth {
-		t.Errorf("square is %d wide, want %d", w, SquareWidth)
+	if w := lipgloss.Width(strings.Join(lines[:5*height], "\n")); w != SquareWidth || SquareWidth != 94 {
+		t.Errorf("square is %d wide (SquareWidth %d), want 94", w, SquareWidth)
+	}
+}
+
+// The longest sign and figure names fit on one line, with room to spare.
+func TestSquareLongNames(t *testing.T) {
+	sag := zodiac.Sagittarius
+	sq := testSquare()
+	sq[0].Sign, sq[0].Figure = &sag, figure.CaputDraconis
+	sq[1].Figure = figure.FortunaMinor
+	out := Square(sq, Options{})
+	if got, want := tile(out, 1)[2], "│♐ Sagittarius 🜂│"; got != want {
+		t.Errorf("sign row = %q, want %q", got, want)
+	}
+	if got, want := tile(out, 1)[9], "│ Caput Draconis │"; got != want {
+		t.Errorf("name row = %q, want %q", got, want)
+	}
+	if got, want := tile(out, 2)[9], "│ Fortuna Minor  │"; got != want {
+		t.Errorf("name row = %q, want %q", got, want)
 	}
 }

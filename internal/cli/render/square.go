@@ -10,11 +10,15 @@ import (
 	"github.com/storskegg/go-geomancer/zodiac"
 )
 
-// houseWidth includes the border.
-const houseWidth = 2 * cellWidth
+// houseWidth includes the border, and houseGap separates neighbouring
+// houses.
+const (
+	houseWidth = 18
+	houseGap   = 1
+)
 
 // SquareWidth is the width of the Square: five houses across.
-const SquareWidth = 5 * houseWidth
+const SquareWidth = 5*houseWidth + 4*houseGap
 
 // squareCells gives each house's row and column in the Square's 5×5 grid;
 // index i is House i+1. The houses run counterclockwise around the edge,
@@ -35,22 +39,25 @@ var squareCells = [12][2]int{
 	{1, 0}, // left side, top
 }
 
-// A house's inner width splits into a column at each edge for symbols and
-// a centre for text, with a space either side of the centre. The centre
-// fits the longest figure name, "Caput Draconis".
+// Rows that carry symbols split a house's inner width into a column at
+// each edge and a centre. The left column fits a sign symbol, which is two
+// columns wide; the right fits an element symbol, which is one. The centre
+// fits the longest sign name, "Sagittarius", with a space either side.
 const (
 	innerWidth  = houseWidth - 2 // less the border
-	edgeWidth   = 2              // a sign symbol is two columns wide
-	centreWidth = innerWidth - 2*edgeWidth - 2
+	leftWidth   = 2
+	rightWidth  = 1
+	centreWidth = innerWidth - leftWidth - rightWidth
 )
 
 // Square draws the Astrological Square, its houses arranged around the edge
 // of a 5×5 grid (see squareCells), with a legend for the symbols.
 //
-// Each house shows its number and sign, the figure, and the figure's name
-// and position. The house's sign symbol and element flank the sign's name;
-// the figure's sign symbol and element flank the figure's name. The right
-// edge of the position row is free for a further element.
+// Each house shows its number, its sign, the figure, and the figure's name
+// and position. Signs' symbols run down the left edge and elements down the
+// right: the house's sign symbol and element flank the sign's name, and the
+// figure's sign symbol and element flank the top row of its dots. The right
+// edge of the second row of dots is free for a further element.
 func Square(sq chart.Square, opts Options) string {
 	cell := lipgloss.NewStyle().
 		Width(houseWidth).
@@ -64,26 +71,39 @@ func Square(sq chart.Square, opts Options) string {
 		if h.Sign != nil {
 			signName = h.Sign.String()
 		}
-		r, c := squareCells[i][0], squareCells[i][1]
-		grid[r][c] = cell.Render(strings.Join([]string{
+		// Every row of dots goes through edgeRow, so they stay aligned
+		// whether or not they carry symbols.
+		dots := strings.Split(Glyph(h.Figure), "\n")
+		dots[0] = opts.signRow(h.FigureSign, dots[0])
+		for j := 1; j < len(dots); j++ {
+			dots[j] = edgeRow("", dots[j], "")
+		}
+		lines := append([]string{
 			labelStyle.Render(fmt.Sprintf("House %d", h.Number)),
 			opts.signRow(h.Sign, signName),
 			"",
-			Glyph(h.Figure),
+		}, dots...)
+		lines = append(lines,
 			"",
-			opts.signRow(h.FigureSign, nameStyle.Render(h.Figure.Name())),
-			edgeRow("", mutedStyle.Render(h.Position.String()), ""),
-		}, "\n"))
+			nameStyle.Render(h.Figure.Name()),
+			mutedStyle.Render(h.Position.String()),
+		)
+		r, c := squareCells[i][0], squareCells[i][1]
+		grid[r][c] = cell.Render(strings.Join(lines, "\n"))
 	}
 
 	// Empty cells are blank blocks the size of a house.
 	blankLine := strings.Repeat(" ", houseWidth)
 	blank := strings.TrimSuffix(strings.Repeat(blankLine+"\n", lipgloss.Height(grid[2][0])), "\n")
+	gap := strings.Repeat(" ", houseGap)
 
 	rows := make([]string, 0, len(grid))
 	for _, row := range grid {
-		cells := make([]string, 0, len(row))
-		for _, c := range row {
+		cells := make([]string, 0, 2*len(row))
+		for j, c := range row {
+			if j > 0 {
+				cells = append(cells, gap)
+			}
 			if c == "" {
 				c = blank
 			}
@@ -103,12 +123,12 @@ func (o Options) signRow(sign *zodiac.Sign, centre string) string {
 	return edgeRow(o.signSymbol(*sign), centre, o.elementSymbol(sign.Element()))
 }
 
-// edgeRow lays out one row of a house: left flush left, centre centred,
-// right flush right.
+// edgeRow lays out one row of a house across its inner width: left flush
+// left, centre centred, right flush right.
 func edgeRow(left, centre, right string) string {
-	return lipgloss.PlaceHorizontal(edgeWidth, lipgloss.Left, left) + " " +
-		lipgloss.PlaceHorizontal(centreWidth, lipgloss.Center, centre) + " " +
-		lipgloss.PlaceHorizontal(edgeWidth, lipgloss.Right, right)
+	return lipgloss.PlaceHorizontal(leftWidth, lipgloss.Left, left) +
+		lipgloss.PlaceHorizontal(centreWidth, lipgloss.Center, centre) +
+		lipgloss.PlaceHorizontal(rightWidth, lipgloss.Right, right)
 }
 
 func (o Options) squareLegend() string {

@@ -224,12 +224,13 @@ Global flags: -s/--system (default traditional), --json, --color auto|always|nev
     (M1 at the far right), Nieces below, then the Witnesses, with the Judge centred and JM to its
     right. Each figure is centred under the two it was summed from. 88 columns wide.
   - Square as bordered house cells around the edge of a 5×5 grid, three per side, corners and
-    the 3×3 centre empty, running counterclockwise from House 1 at the middle of the left side
-    (110 columns wide, 60 lines tall). Each cell shows the
-    house number; the house's sign flanked by its symbol (left edge) and element (right edge);
-    the figure; the figure's name flanked by the figure's sign symbol and element; and the
-    position. The position row's right edge is reserved for a further element icon. A legend
-    explains the symbols. A traditional square-chart drawing can come later.
+    the 3×3 centre empty, running counterclockwise from House 1 at the middle of the left side.
+    Houses are 18 columns wide with 1-column gaps, so the Square is 94 columns wide and 60 lines
+    tall. Sign symbols run down each house's left edge and elements down its right: the house's
+    sign flanked by its symbol and element; the figure's dots, the top row flanked by the
+    figure's sign symbol and element, the second row's right edge reserved for a further
+    element icon; then the figure's name and position. A legend explains the symbols. A
+    traditional square-chart drawing can come later.
   - `--symbols unicode|ascii`: signs as ♈–♓ or two-letter abbreviations, elements as alchemical
     triangles (🜂 🜁 🜄 🜃) or letters, for fonts that lack the triangles.
   - The relationship between a figure and its house (geomantic aspects) is deferred until its
