@@ -35,7 +35,8 @@ func newCastCommand(opts *options) *cobra.Command {
 With no arguments, you are prompted to choose the system (unless --system
 is given), for your question (unless --question is given; it's optional),
 for the significator, the house of what you're asking about (unless
---significator is given), and for each Mother. Type to filter the
+--significator is given), and for each Mother. The significator prompt
+starts on the house your question suggests; see 'geomancer suggest'. Type to filter the
 houses by subject and the figures by name or dot pattern. Set ACCESSIBLE=1
 for numbered, line-based prompts instead.
 
@@ -152,6 +153,7 @@ func mothersSource(cmd *cobra.Command, args []string, sys *system.System, sig *i
 	if !cmd.Flags().Changed("significator") {
 		sigs := content.Default().Significations()
 		p.Significations = sigs[:]
+		p.Suggest = func(q string) (int, string) { return suggestHint(q, p.Accessible) }
 	}
 	return p, nil
 }

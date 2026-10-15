@@ -285,3 +285,24 @@ func TestHouseMeaningsWritten(t *testing.T) {
 		}
 	}
 }
+
+// Each house has terms, weighted 1 to 3, and no person is in two houses.
+func TestLexicon(t *testing.T) {
+	people := map[string]int{}
+	for _, sig := range Default().Significations() {
+		if len(sig.Terms) < 20 {
+			t.Errorf("house %d has only %d terms", sig.House, len(sig.Terms))
+		}
+		for term, w := range sig.Terms {
+			if w < 1 || w > 3 || strings.TrimSpace(term) != term || strings.ToLower(term) != term {
+				t.Errorf("house %d term %q weight %v", sig.House, term, w)
+			}
+		}
+		for _, p := range sig.People {
+			if h, dup := people[p]; dup {
+				t.Errorf("%q is in houses %d and %d", p, h, sig.House)
+			}
+			people[p] = sig.House
+		}
+	}
+}

@@ -46,6 +46,7 @@ func NewCommand() *cobra.Command {
 		newFiguresCommand(&opts),
 		newFigureCommand(&opts),
 		newSystemsCommand(&opts),
+		newSuggestCommand(&opts),
 	)
 	return root
 }

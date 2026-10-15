@@ -9,9 +9,11 @@ require (
 	github.com/charmbracelet/colorprofile v0.4.3
 	github.com/charmbracelet/x/ansi v0.11.9
 	github.com/charmbracelet/x/term v0.2.2
+	github.com/kljensen/snowball v0.10.0
 	github.com/parquet-go/parquet-go v0.32.0
 	github.com/spf13/cobra v1.10.2
 	github.com/tdewolff/canvas v0.0.0-20260923214215-09804640d00c
+	golang.org/x/text v0.43.0
 	modernc.org/sqlite v1.60.1
 )
 
@@ -66,7 +68,6 @@ require (
 	golang.org/x/net v0.61.0 // indirect
 	golang.org/x/sync v0.24.0 // indirect
 	golang.org/x/sys v0.49.0 // indirect
-	golang.org/x/text v0.43.0 // indirect
 	google.golang.org/protobuf v1.36.12 // indirect
 	modernc.org/knuth v0.6.0 // indirect
 	modernc.org/libc v1.78.0 // indirect

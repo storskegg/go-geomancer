@@ -327,7 +327,7 @@ func TestPreviewFollowsSystem(t *testing.T) {
 func TestSignificatorSelect(t *testing.T) {
 	sigs := content.Default().Significations()
 	n := 0 // invalid: starts on House 1
-	d := newDriver(t, significatorGroup(&n, sigs[:], false))
+	d := newDriver(t, significatorGroup(&n, sigs[:], false, nil, nil))
 	if n != 1 {
 		t.Fatalf("initial choice = %d, want 1", n)
 	}
@@ -355,7 +355,7 @@ func TestSignificatorSelect(t *testing.T) {
 func TestSignificatorSelectKeepsInitialChoice(t *testing.T) {
 	sigs := content.Default().Significations()
 	n := 10
-	d := newDriver(t, significatorGroup(&n, sigs[:], false))
+	d := newDriver(t, significatorGroup(&n, sigs[:], false, nil, nil))
 	d.key(tea.KeyEnter)
 	if n != 10 {
 		t.Errorf("chose %d, want 10", n)
@@ -423,5 +423,88 @@ func TestPromptAccessibleQuestion(t *testing.T) {
 	}
 	if q != "Will the contract be signed?" || got[0] != figure.Amissio || got[3] != figure.Populus {
 		t.Errorf("question %q, mothers %v", q, got)
+	}
+}
+
+// fakeSuggest suggests House 7 for questions mentioning marriage.
+func fakeSuggest(q string) (int, string) {
+	if strings.Contains(q, "marr") {
+		return 7, "Suggested: ⑦ Partnership, from “marry”."
+	}
+	return 0, ""
+}
+
+func TestSignificatorSuggestion(t *testing.T) {
+	sigs := content.Default().Significations()
+	q, n := "", 0
+	var m [4]figure.Figure
+	d := newDriver(t, append([]*huh.Group{
+		questionGroup(&q),
+		significatorGroup(&n, sigs[:], false, &q, fakeSuggest),
+	}, motherGroups(&m, nil, false)...)...)
+
+	d.typeText("Will we marry?")
+	d.key(tea.KeyEnter)
+	if v := d.view(); n != 7 || !strings.Contains(v, "Suggested: ⑦ Partnership") || !strings.Contains(v, "> ⑦ Partnership") {
+		t.Fatalf("after the question, n = %d:\n%s", n, v)
+	}
+
+	// Choose another house, go back to the question without changing it,
+	// and return: the choice stands.
+	d.key(tea.KeyDown)
+	if n != 8 {
+		t.Fatalf("after ↓, n = %d", n)
+	}
+	d.send(tea.KeyPressMsg{Code: tea.KeyTab, Mod: tea.ModShift})
+	d.key(tea.KeyEnter)
+	if n != 8 {
+		t.Errorf("returning to an unchanged question reset the choice to %d", n)
+	}
+
+	// Change the question: it suggests afresh.
+	d.send(tea.KeyPressMsg{Code: tea.KeyTab, Mod: tea.ModShift})
+	d.typeText(" Or not.")
+	d.key(tea.KeyEnter)
+	if n != 7 {
+		t.Errorf("a changed question didn't suggest again: n = %d", n)
+	}
+
+	// Enter accepts it.
+	d.key(tea.KeyEnter)
+	if n != 7 || !strings.Contains(d.view(), "Mother 1 (M1)") {
+		t.Errorf("n = %d after accepting:\n%s", n, d.view())
+	}
+}
+
+// A question without a suggestion leaves the significator where it was.
+func TestSignificatorNoSuggestion(t *testing.T) {
+	sigs := content.Default().Significations()
+	q, n := "", 10
+	d := newDriver(t, questionGroup(&q), significatorGroup(&n, sigs[:], false, &q, fakeSuggest))
+	d.typeText("Will it rain?")
+	d.key(tea.KeyEnter)
+	if v := d.view(); n != 10 || strings.Contains(v, "Suggested") {
+		t.Errorf("n = %d:\n%s", n, v)
+	}
+}
+
+func TestPromptAccessibleSuggestion(t *testing.T) {
+	sigs := content.Default().Significations()
+	q, n := "", 0
+	var out bytes.Buffer
+	p := Prompt{
+		// The question, then Enter to accept the suggested significator.
+		In: strings.NewReader("Shall we marry?\n\n6\n8\n1\n2\n"), Out: &out, Accessible: true,
+		AskQuestion: true, Question: &q, Significator: &n, Significations: sigs[:], Suggest: fakeSuggest,
+	}
+	got, err := p.Mothers()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if n != 7 || got[0] != figure.Amissio || got[3] != figure.Populus {
+		t.Errorf("significator %d, mothers %v", n, got)
+	}
+	if !strings.Contains(out.String(), "Significator — Suggested: ⑦ Partnership, from “marry”. Press Enter to accept it.") {
+		t.Errorf("output lacks the suggestion:\n%s", out.String())
 	}
 }

@@ -110,6 +110,17 @@ type Signification struct {
 	House int    `json:"house"` // 1–12
 	Title string `json:"title"` // a word or two, such as "Partnership"
 	Text  string `json:"text"`  // the matters it covers
+	// Terms are words and phrases that, in a question, point to this house,
+	// weighted 1 (weak) to 3 (strong). Package question matches them.
+	Terms map[string]float64 `json:"terms,omitempty"`
+	// People are the people this house signifies, such as "husband" for
+	// House 7, used to find derived houses: a question about a person's
+	// affairs is counted from that person's house.
+	People []string `json:"people,omitempty"`
+	// Qualities are terms that describe a person rather than their affairs,
+	// such as "faithful" for House 7. They never make a question about a
+	// person's affairs: "Is my boyfriend faithful?" stays in House 7.
+	Qualities []string `json:"qualities,omitempty"`
 }
 
 // Set is the content for one locale.

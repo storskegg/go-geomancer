@@ -1,0 +1,215 @@
+# Labelled questions for tuning and testing the suggester.
+# Each line: the question, a tab, and the acceptable houses (comma-separated),
+# the best first. Derived-house questions are labelled with the derived house.
+
+# House 1: the querent
+Will I live a long life?	1
+What does the coming year hold for me?	1
+Will my health improve this year?	1,6
+Am I on the right path in life?	1
+How will people see my character?	1
+Will I lose weight?	1
+Is my energy going to return?	1
+Will my luck change?	1
+What is my destiny?	1
+Will I find happiness?	1,11
+Will my appearance change for the better?	1
+Am I strong enough to face this?	1
+Will I be more confident?	1
+What is my future?	1
+Will my mood lift?	1
+
+# House 2: money and possessions
+Will I have enough money this month?	2
+Will I get a raise?	2,10
+Where is my lost ring?	2
+Will I find my keys?	2
+Should I buy this car?	2,3
+Will my savings grow?	2
+Can I afford a new laptop?	2
+Will my income increase?	2
+Where did I put my wallet?	2
+Will I find my missing necklace?	2
+Will I make a profit selling my bike?	2
+Is my paycheck going to cover the bills?	2
+Will my finances recover?	2
+Should I sell my jewellery?	2
+Will I become wealthy?	2
+Is this purchase a good idea?	2
+
+# House 3: siblings, neighbours, news, short trips
+Will my brother call me?	3
+How is my sister doing?	3
+Will I hear news from home?	3,4
+Will the letter arrive soon?	3
+Will my neighbours stop the noise?	3
+Will I get a reply to my email?	3
+Is the message I received true?	3
+Will my cousin visit?	3
+Will my commute get easier?	3
+Is the rumour about me true?	3
+Will the short trip go well?	3
+Should I text him back?	3
+Will my siblings get along?	3
+Is the gossip at school about me?	3
+
+# House 4: home, land, father, endings
+Should I move house?	4
+Will we buy the apartment?	4
+Is this a good time to sell my house?	4
+Will the landlord renew the lease?	4
+Should I relocate to the countryside?	4
+Will the renovation be finished?	4
+Will my family be at peace?	4
+Will we find a new flat?	4
+Is the land worth buying?	4
+How will this situation end?	4
+Should I take out a mortgage?	4,8
+Will I retire comfortably?	4
+Will our garden thrive?	4
+Is there treasure buried here?	4
+
+# House 5: children, pregnancy, romance, pleasure, gambling
+Am I pregnant?	5
+Will we have a baby?	5
+Will my son do well?	5
+Will my daughter be happy?	5
+Should I go on a date with him?	5
+Is this romance going anywhere?	5,7
+Will I win the lottery?	5
+Should I place this bet?	5
+Will the party be fun?	5
+Will we conceive this year?	5
+Is my crush interested in me?	5
+Will my children be safe?	5
+Is this affair a mistake?	5
+Will my team win the game?	5
+Should I take up painting as a hobby?	5
+
+# House 6: illness, work, servants, pets
+Will I recover from this illness?	6
+Is the treatment working?	6
+Will my surgery go well?	6
+What is causing my symptoms?	6
+Will my coworkers respect me?	6
+Will my dog get better?	6
+Should I hire a new employee?	6,10
+Will my colleagues support me?	6
+Is the diagnosis correct?	6
+Will my cat come home?	6
+Will the medicine help?	6
+Am I sick?	6
+Will my chemotherapy succeed?	6
+Will my fever break?	6
+Will my daily routine improve?	6
+
+# House 7: marriage, partners, contracts, lawsuits, open enemies, thieves
+Will we get married?	7
+Will he propose?	7
+Is my relationship going to last?	7
+Will my wife forgive me?	7
+Should I divorce my husband?	7
+Will I win the lawsuit?	7
+Will they sign the contract?	7
+Who stole my bike?	7,2
+Will the thief be caught?	7
+Will my business partner be honest?	7
+Will the court rule in my favour?	7
+Will I beat my rival?	7
+Is my boyfriend faithful?	7
+Will the deal go through?	7
+Will my fiancée and I be happy?	7
+Should we plan the nuptials for spring?	7
+Will my girlfriend move in with me?	7
+Will the negotiation succeed?	7
+
+# House 8: death, fear, inheritance, others' money, debts
+Will I receive the inheritance?	8
+Will my debts be paid off?	8
+Will the insurance pay out?	8
+Will I get my loan approved?	8
+Should I be afraid of this?	8
+Will the estate be settled fairly?	8
+Will my taxes be lower?	8
+Is someone close to me going to die?	8
+Will I get the alimony?	8
+Is there danger ahead?	8
+Will they pay back what they owe me?	8
+
+# House 9: long journeys, religion, learning, law, dreams
+Should I travel abroad this summer?	9
+Will my visa be approved?	9
+Will I pass my exams?	9
+Should I go to university?	9
+Will my book be published?	9
+What does my dream mean?	9
+Should I study law?	9
+Will my flight be safe?	9
+Should I emigrate to Canada?	9
+Will I find my faith again?	9
+Will I finish my degree?	9
+Will my thesis be accepted?	9
+Is this spiritual path right for me?	9
+Will my professor approve my research?	9
+Should I go on pilgrimage?	9
+
+# House 10: career, honour, reputation, authority, mother
+Will I get the job?	10
+Will I be promoted?	10
+Will the interview go well?	10
+Will my boss like my work?	10
+Should I change careers?	10
+Will my reputation recover?	10
+Will I be fired?	10
+Will my business succeed?	10
+Will I win the election?	10
+Will my mother be well?	10,6
+Is this the right profession for me?	10
+Will I be offered the position?	10
+Will my manager approve the project?	10
+Should I start my own company?	10
+Will I achieve success in my field?	10
+
+# House 11: friends, hopes and wishes
+Will my wish come true?	11
+Will my friend forgive me?	11
+Will I make new friends?	11
+Will my hopes be fulfilled?	11
+Will I reach my goal?	11
+Is my friendship with her real?	11
+Will the club accept me?	11
+Will I find a sponsor?	11
+Will my ambitions be realised?	11
+Will my allies support me?	11
+
+# House 12: secret enemies, confinement, sorrow, self-undoing
+Is someone working against me in secret?	12
+Will he go to prison?	12
+Will I be released from hospital?	12
+Will I overcome my addiction?	12
+Who is betraying me?	12
+Is someone hiding something from me?	12
+Will my depression lift?	12
+Is there a curse on me?	12
+Will my horse recover?	12
+Will he be arrested?	12
+Is someone spying on me?	12
+Will the sorrow pass?	12
+
+# Derived houses: another person's affairs
+Will my husband get the job?	4
+Will my wife be promoted?	4
+Is my son sick?	10
+Will my sister get married?	9
+Is my daughter pregnant?	9
+Will my brother find a job?	12
+Will my mother recover from her illness?	3
+Will my friend's marriage last?	5
+Will my boss be fired?	7
+Will my partner inherit the house?	2
+Will my son pass his exams?	1
+Will my father sell the house?	7
+Will my wife's surgery go well?	12
+Will my brother's lawsuit succeed?	9
+Will my boyfriend's career take off?	4
+Will my father recover?	9

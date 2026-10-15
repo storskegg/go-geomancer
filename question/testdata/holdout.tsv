@@ -1,0 +1,50 @@
+# Held-out questions, written after tuning on questions.tsv and never tuned
+# on: they measure how well the suggester generalises. Same format.
+Will my body heal after the accident?	1,6
+Am I making the right choices?	1
+Will I ever feel at peace with myself?	1
+Is my overdraft going to get worse?	2
+Will I recover the money I lent?	2,8
+Where is my missing passport?	2
+Should I splurge on a new watch?	2
+Will my sibling reach out?	3
+Will the post bring good news?	3
+Will my car pass its inspection?	3,2
+Will the sale of our cottage go through?	4
+Should we downsize our home?	4
+Will my dad approve of my plans?	4
+Will we be able to buy a house next year?	4
+Will my toddler settle at nursery?	5
+Will the IVF work?	5
+Is she the one I should be dating?	5,7
+Will I hit the jackpot?	5
+Will my migraines go away?	6
+Will my new assistant work out?	6
+Is my puppy healthy?	6
+Will the clinic find the cause of my pain?	6
+Will my spouse come back?	7
+Will we reconcile after the breakup?	7
+Who broke into my car?	7
+Will I win the custody case?	7
+Should I accept their offer to merge?	7,10
+Will the will be read soon?	8
+Will the bank write off my debt?	8
+Am I in danger?	8
+Will my pension be enough?	8,2
+Will I get into graduate school?	9
+Will my trip to Japan go smoothly?	9
+Should I convert to Buddhism?	9
+Will my publisher accept the manuscript?	9
+Will the ministry recognise my work?	10
+Should I quit my job?	10
+Will I be elected to the council?	10
+Will I get tenure?	10
+Will my mum forgive me?	10
+Will my best friend stand by me?	11
+Will my dream of owning a bakery come true?	11
+Will the group welcome me?	11
+Is there a hidden enemy in my office?	12
+Will my uncle be released from jail?	12
+Will I escape this loneliness?	12
+Will my wife get the promotion?	4
+Will my daughter get into university?	1

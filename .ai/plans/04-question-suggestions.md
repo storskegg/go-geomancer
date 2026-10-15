@@ -84,3 +84,40 @@ Questions about another person's affairs use the house counted from that person'
 - Languages other than English.
 - Transformer models: the only pure-Go option (`nlpodyssey/cybertron`, on `spago`) was last
   released in November 2023, and the others need cgo.
+
+## Outcome
+
+Built as planned, phase 2 included.
+
+- `question.Suggest` scores the lexicon (671 terms across the twelve houses, in
+  `content/data/en.json` with the significations) and the GloVe vectors (50,000 words ×
+  100 dimensions, int8, 5.4 MB in `question/data/vectors.bin`, built by
+  `internal/tools/vectors`).
+- Lessons from tuning, now rules: terms sharing a stem are one term; phrases take their words
+  first; a word that is itself a term isn't claimed by another term sharing its stem
+  ("faithful" isn't "faith"); only terms of weight 2+ and words outside the 2,000 most common
+  are matched by meaning; derivations need an exact subject match that isn't a quality
+  (`qualities`: "faithful", "loyal", …), isn't owned by the querent ("my work"), and isn't in a
+  first-person question. A subject may be in the person's own house ("Will my boss be fired?"
+  is the 10th from the 10th).
+- No suggestion means the prompt opens on House 1, so evaluation scores it as House 1.
+
+### Accuracy
+
+| Set | Questions | Top 1 | Top 2 | Notes |
+|---|---|---|---|---|
+| `questions.tsv` | 186 | 97.8% | 98.9% | tuned on |
+| `holdout.tsv` | 48 | 93.8% | 93.8% | first measured at 66.7% / 72.9%; the lexicon was then expanded by category in response, so it's no longer unseen |
+| `holdout2.tsv` | 40 | 75.0% | 82.5% | written afterwards and never tuned on: the realistic figure for new questions |
+
+The test pins each set a little below these. Misses on new questions are mostly vocabulary the
+lexicon lacks (audition, treaty, blood pressure); adding terms by category is the way to
+improve, measured against a fresh held-out set each time.
+
+### Interface
+
+- The significator prompt starts on the top suggestion and shows the top two as a hint, e.g.
+  "Suggested: ④ Home, the 10th from the 7th (“husband”, “job”); or ⑩ Honour, from “job”".
+  It suggests again only if the question changes, so a house chosen by hand survives going
+  back. Accessible prompts show the hint in the title and accept it with Enter.
+- `geomancer suggest QUESTION` (and `--json`) shows the suggestions and their reasons.

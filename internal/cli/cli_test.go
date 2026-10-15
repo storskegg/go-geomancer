@@ -65,6 +65,8 @@ func TestGolden(t *testing.T) {
 		{"figure-json", []string{"figure", "--json", "puer"}},
 		{"systems", []string{"systems"}},
 		{"systems-json", []string{"systems", "--json"}},
+		{"suggest", []string{"suggest", "Will my husband get the job?"}},
+		{"suggest-json", []string{"suggest", "--json", "Will", "the", "contract", "be", "signed?"}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -375,6 +377,53 @@ func TestCastPDFBadPath(t *testing.T) {
 		}
 		if stderr != "" {
 			t.Errorf("%s: prompted before failing:\n%s", path, stderr)
+		}
+	}
+}
+
+func TestSuggestCommand(t *testing.T) {
+	out, err := execute(t, "suggest", "--color", "never", "Will it?")
+	if err != nil || !strings.Contains(out, "No suggestion") {
+		t.Errorf("no suggestion: %q, %v", out, err)
+	}
+	if _, err := execute(t, "suggest"); err == nil {
+		t.Error("suggest without a question succeeded")
+	}
+}
+
+// With a question, the significator prompt starts on its suggestion.
+func TestCastPromptSuggestion(t *testing.T) {
+	t.Setenv("ACCESSIBLE", "1")
+	// The question, Enter to accept the suggestion, then the Mothers.
+	stdout, stderr, err := runWithInput(t, "Will my husband get the job?\n\n6\n8\n1\n2\n", "cast", "--json", "-s", "goldendawn")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var r chart.Reading
+	if err := json.Unmarshal([]byte(stdout), &r); err != nil {
+		t.Fatal(err)
+	}
+	if r.Significator != 4 {
+		t.Errorf("significator = %d, want the suggested 4", r.Significator)
+	}
+	if !strings.Contains(stderr, "Suggested: House 4 · Home, the 10th from the 7th (“husband”, “job”)") {
+		t.Errorf("stderr lacks the suggestion:\n%s", stderr)
+	}
+
+	// --question feeds the suggestion too.
+	stdout, _, err = runWithInput(t, "\n6\n8\n1\n2\n", "cast", "--json", "-s", "goldendawn", "--question", "Will we divorce?")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := json.Unmarshal([]byte(stdout), &r); err != nil || r.Significator != 7 {
+		t.Errorf("significator = %d, %v; want 7", r.Significator, err)
+	}
+}
+
+func TestOrdinal(t *testing.T) {
+	for n, want := range map[int]string{1: "1st", 2: "2nd", 3: "3rd", 4: "4th", 10: "10th", 11: "11th", 12: "12th", 21: "21st", 22: "22nd", 113: "113th"} {
+		if got := ordinal(n); got != want {
+			t.Errorf("ordinal(%d) = %q, want %q", n, got, want)
 		}
 	}
 }

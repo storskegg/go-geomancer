@@ -1,0 +1,13 @@
+[
+  {
+    "house": 7,
+    "title": "Partnership",
+    "score": 2,
+    "matches": [
+      {
+        "word": "contract",
+        "term": "contract"
+      }
+    ]
+  }
+]

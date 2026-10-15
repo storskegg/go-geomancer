@@ -209,6 +209,7 @@ geomancer cast [M1 M2 M3 M4] [--nephews]  # Shield + Astrological Square; prompt
 geomancer figures                       # table of all 16 figures + meta
 geomancer figure  <name|pattern>        # detail view incl. house meanings
 geomancer systems                       # list registered systems
+geomancer suggest QUESTION              # suggest the significator for a question
 
 Global flags: -s/--system (default goldendawn), --json, --color auto|always|never, --symbols unicode|ascii
 cast flags:   -q/--significator N|TITLE, --question TEXT, --pdf FILE, --nephews

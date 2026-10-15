@@ -43,6 +43,9 @@ type Prompt struct {
 	// Significator, whose value, if valid, is the initial choice.
 	Significator   *int
 	Significations []content.Signification
+	// Suggest, if set, suggests the significator from the question: the
+	// house to start on (0 for none) and a hint explaining it.
+	Suggest func(question string) (house int, hint string)
 }
 
 var ordinals = [4]string{"first", "second", "third", "fourth"}
@@ -64,7 +67,16 @@ func (p Prompt) Mothers() ([4]figure.Figure, error) {
 		groups = append(groups, questionGroup(p.Question))
 	}
 	if len(p.Significations) > 0 {
-		groups = append(groups, significatorGroup(p.Significator, p.Significations, p.Accessible))
+		// Accessible prompts can't change the significator's starting house
+		// once the form is running, so ask what comes before it first.
+		if p.Accessible && p.Suggest != nil && len(groups) > 0 {
+			form := newForm(groups...).WithAccessible(true).WithInput(in).WithOutput(p.Out)
+			if err := formError(form.Run()); err != nil {
+				return m, err
+			}
+			groups = nil
+		}
+		groups = append(groups, significatorGroup(p.Significator, p.Significations, p.Accessible, p.Question, p.Suggest))
 	}
 	groups = append(groups, motherGroups(&m, p.System, p.Accessible)...)
 	form := newForm(groups...).WithAccessible(p.Accessible).WithInput(in).WithOutput(p.Out)
@@ -139,7 +151,10 @@ func questionGroup(q *string) *huh.Group {
 // house to n. Typing filters by title and signification, not by house
 // number: the list shows numbers as circled digits (⑦), which typed digits
 // don't match. Accessible prompts number the list 1–12 themselves.
-func significatorGroup(n *int, sigs []content.Signification, accessible bool) *huh.Group {
+//
+// If suggest is set, it starts on the house suggested by the question, and
+// describes the suggestion.
+func significatorGroup(n *int, sigs []content.Signification, accessible bool, question *string, suggest func(string) (int, string)) *huh.Group {
 	options := make([]huh.Option[int], 0, len(sigs))
 	for _, s := range sigs {
 		label := s.Title + " — " + s.Text
@@ -153,16 +168,61 @@ func significatorGroup(n *int, sigs []content.Signification, accessible bool) *h
 	}
 	sel := huh.NewSelect[int]().Options(options...).Value(n)
 	if accessible {
-		sel.Title("Significator").Description("Choose the house of what you're asking about.")
+		// Accessible selects show their title but not their description, so
+		// a suggestion's hint goes in the title.
+		title := "Significator"
+		if suggest != nil && question != nil {
+			if h, hint := suggest(strings.TrimSpace(*question)); h != 0 {
+				*n = h
+				sel.Options(options...) // start on the suggestion
+				title += " — " + hint + " Press Enter to accept it."
+			}
+		}
+		sel.Title(title).Description("Choose the house of what you're asking about.")
 		return huh.NewGroup(sel)
 	}
 	// As for the Mothers, the filter takes the select's title slot, so the
-	// prompt's own title goes in a note.
-	sel.Title("House").Filtering(true).Height(1 + len(sigs))
+	// prompt's own title goes in a note. The height leaves room for a
+	// suggestion's hint above the twelve houses.
+	sel.Title("House").Filtering(true).Height(1 + 2 + len(sigs))
 	note := huh.NewNote().
 		Title("Significator").
 		Description("Choose the house of what you're asking about. Type to filter by subject.")
-	return huh.NewGroup(note, sel)
+	if suggest == nil || question == nil {
+		return huh.NewGroup(note, sel)
+	}
+	return huh.NewGroup(note, &suggestSelect{Select: sel, options: options, n: n, question: question, suggest: suggest})
+}
+
+// suggestSelect starts the significator select on the house suggested by
+// the question. It suggests when it gains focus, if the question has changed
+// since it last did, so a house chosen by hand survives going back to the
+// question and returning without changing it.
+type suggestSelect struct {
+	*huh.Select[int]
+	options  []huh.Option[int]
+	n        *int
+	question *string
+	suggest  func(string) (int, string)
+	asked    string // the question the current suggestion is for
+}
+
+func (s *suggestSelect) Focus() tea.Cmd {
+	if q := strings.TrimSpace(*s.question); q != s.asked {
+		s.asked = q
+		h, hint := s.suggest(q)
+		if h != 0 {
+			*s.n = h
+		}
+		s.Description(hint)
+		s.Options(s.options...) // moves the cursor to *s.n
+	}
+	return s.Select.Focus()
+}
+
+func (s *suggestSelect) Update(msg tea.Msg) (huh.Model, tea.Cmd) {
+	_, cmd := s.Select.Update(msg)
+	return s, cmd
 }
 
 // circled returns n (1–20) as a circled digit, ① to ⑳.
