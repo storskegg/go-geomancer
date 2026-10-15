@@ -11,7 +11,7 @@ terminal output.
 | Paper | US Letter; other sizes later |
 | Style | Classical: parchment background, dark-brown ink, earthy accents (oxblood, olive, ochre, slate), a serif title and text face, double-rule page border, ornamental rule under the title |
 | Square | The traditional square chart (outer square, centre square, diamond through its corners, corner diagonals: twelve equal triangles, counterclockwise from House 1 on the left). The terminal keeps the 5×5 layout |
-| Aspects | Lines across the centre square from the significator to each aspected house: red stressful, green easing, solid Dexter, dashed Sinister, each ending in the aspect's symbol |
+| Aspects | Lines across the centre square from the significator to each aspected house: red stressful, green easing, solid Dexter, dashed Sinister. Each ends towards its house (in the direction of the house's contents) in the aspect's symbol, with the house's number beyond it; the significator's end is numbered too. Lines running out into the houses were tried and rejected: they cross the figures and names |
 | Library | `github.com/tdewolff/canvas` (pure Go; PDF, and SVG/PNG for later use) |
 | Fonts | Embedded open-licensed fonts, so output doesn't depend on the system. The samples used macOS fonts (Big Caslon, Iowan Old Style, Apple Symbols) |
 | Symbols | Aspect symbols and figure dots are drawn as vector shapes; sign and element glyphs come from the symbol font |

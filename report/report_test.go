@@ -70,12 +70,30 @@ func TestHouseTriangles(t *testing.T) {
 	}
 }
 
-func TestAspectAnchor(t *testing.T) {
-	for n, want := range map[int]pt{1: {-10, 0}, 4: {0, -10}, 7: {10, 0}, 10: {0, 10}} {
-		got := aspectAnchor(n, 10)
+// Aspect lines end in the centre square towards their house: the angular
+// houses straight out from its sides, the others between.
+func TestEdgeAnchor(t *testing.T) {
+	q := squareHalf / 2
+	for n, want := range map[int]pt{1: {-q, 0}, 4: {0, -q}, 7: {q, 0}, 10: {0, q}} {
+		got := edgeAnchor(n, 1)
 		if math.Abs(got.x-want.x) > 1e-9 || math.Abs(got.y-want.y) > 1e-9 {
-			t.Errorf("aspectAnchor(%d) = %v, want %v", n, got, want)
+			t.Errorf("edgeAnchor(%d, 1) = %v, want %v", n, got, want)
 		}
+	}
+	for n := 1; n <= 12; n++ {
+		e, c := edgeAnchor(n, 0.5), incentre(houseTriangle(n))
+		// On the square's edge at f = 1, inside it below, and towards the
+		// house.
+		if edge := edgeAnchor(n, 1); math.Abs(math.Max(math.Abs(edge.x), math.Abs(edge.y))-q) > 1e-9 {
+			t.Errorf("house %d: edgeAnchor(1) = %v is off the centre square's edge", n, edge)
+		}
+		if math.Max(math.Abs(e.x), math.Abs(e.y)) >= q || e.x*c.x+e.y*c.y <= 0 {
+			t.Errorf("house %d: edgeAnchor(0.5) = %v isn't inside, towards %v", n, e, c)
+		}
+	}
+	// Houses sharing a corner of the centre square end apart.
+	if a, b := edgeAnchor(2, 0.74), edgeAnchor(3, 0.74); math.Hypot(a.x-b.x, a.y-b.y) < 5 {
+		t.Errorf("houses 2 and 3 end %.1f mm apart", math.Hypot(a.x-b.x, a.y-b.y))
 	}
 }
 

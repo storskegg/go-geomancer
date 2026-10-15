@@ -51,14 +51,6 @@ func incentre(t [3]pt) pt {
 	return pt{(a*t[0].x + b*t[1].x + c*t[2].x) / s, (a*t[0].y + b*t[1].y + c*t[2].y) / s}
 }
 
-// aspectAnchor returns where house n's aspect line ends, on a circle of
-// radius rad in the centre square: House 1 on the left, then
-// counterclockwise like the houses.
-func aspectAnchor(n int, rad float64) pt {
-	a := float64(180+(n-1)*30) * math.Pi / 180
-	return pt{rad * math.Cos(a), rad * math.Sin(a)}
-}
-
 // square draws the Astrological Square as a traditional square chart below
 // top and returns the y of its bottom edge.
 func (rep *report) square(p *page, top float64) float64 {
@@ -108,37 +100,8 @@ func (rep *report) square(p *page, top float64) float64 {
 		}
 	}
 
-	rep.aspectLines(p, h)
+	rep.aspectLines(p)
 	return cy - h
-}
-
-// aspectLines draws, across the centre square, a line from the significator
-// to each house aspecting it: solid for Dexter, dashed for Sinister, each
-// ending in the aspect's symbol.
-func (rep *report) aspectLines(p *page, h float64) {
-	if rep.r.Significator == 0 {
-		return
-	}
-	ctx := p.ctx
-	rad := h / 2 * 0.78
-	s := aspectAnchor(rep.r.Significator, rad)
-	for _, a := range rep.r.Aspects {
-		e := aspectAnchor(a.House, rad)
-		ctx.SetFillColor(canvas.Transparent)
-		ctx.SetStrokeColor(aspectColour(a.Aspect))
-		ctx.SetStrokeWidth(0.5)
-		if a.Side == aspect.Sinister {
-			ctx.SetDashes(0, 1.6, 1.0)
-		}
-		ctx.MoveTo(s.x, s.y)
-		ctx.LineTo(e.x, e.y)
-		ctx.Stroke()
-		ctx.SetDashes(0)
-		p.glyph(a.Aspect, e.x, e.y, 2.2)
-	}
-	ctx.SetFillColor(accent)
-	ctx.SetStrokeColor(canvas.Transparent)
-	ctx.DrawPath(s.x, s.y, canvas.Circle(1.1))
 }
 
 // squareLegend explains the elements and, if there's a significator, the
@@ -183,4 +146,49 @@ func (rep *report) squareLegend(p *page, y float64) {
 	p.text(f.italic, 8.5, muted, PageWidth/2, y, strings.Join([]string{
 		"Shaded: the significator", "red: stressful", "green: easing", "Dexter is the stronger of a pair",
 	}, "  ·  "), canvas.Center)
+}
+
+// edgeAnchor returns a point in the centre square in the direction of house
+// n's contents (its incentre), a fraction f of the way from the middle to
+// the square's edge.
+func edgeAnchor(n int, f float64) pt {
+	c := incentre(houseTriangle(n))
+	s := f * (squareHalf / 2) / math.Max(math.Abs(c.x), math.Abs(c.y))
+	return pt{c.x * s, c.y * s}
+}
+
+// aspectLines draws, across the centre square, a line from the significator
+// to each house aspecting it: solid for Dexter, dashed for Sinister. Each
+// line ends towards its house, in the aspect's symbol, with the house's
+// number beyond it; the significator's end is numbered too.
+func (rep *report) aspectLines(p *page) {
+	if rep.r.Significator == 0 {
+		return
+	}
+	ctx := p.ctx
+	// How far towards the centre square's edge the lines end, and their
+	// numbers sit.
+	const end, label = 0.74, 0.9
+	s := edgeAnchor(rep.r.Significator, end)
+	for _, a := range rep.r.Aspects {
+		e := edgeAnchor(a.House, end)
+		ctx.SetFillColor(canvas.Transparent)
+		ctx.SetStrokeColor(aspectColour(a.Aspect))
+		ctx.SetStrokeWidth(0.5)
+		if a.Side == aspect.Sinister {
+			ctx.SetDashes(0, 1.6, 1.0)
+		}
+		ctx.MoveTo(s.x, s.y)
+		ctx.LineTo(e.x, e.y)
+		ctx.Stroke()
+		ctx.SetDashes(0)
+		p.glyph(a.Aspect, e.x, e.y, 2.2)
+		l := edgeAnchor(a.House, label)
+		p.text(rep.f.bold, 7.5, aspectColour(a.Aspect), l.x, l.y-1.1, fmt.Sprint(a.House), canvas.Center)
+	}
+	ctx.SetFillColor(accent)
+	ctx.SetStrokeColor(canvas.Transparent)
+	ctx.DrawPath(s.x, s.y, canvas.Circle(1.1))
+	l := edgeAnchor(rep.r.Significator, label)
+	p.text(rep.f.bold, 7.5, accent, l.x, l.y-1.1, fmt.Sprint(rep.r.Significator), canvas.Center)
 }
