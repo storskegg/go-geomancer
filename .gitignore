@@ -142,3 +142,6 @@ Temporary Items
 
 # Default export output
 /readings.*
+
+# Reports written while testing
+/*.pdf
