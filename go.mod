@@ -56,6 +56,8 @@ require (
 	github.com/pierrec/lz4/v4 v4.1.33 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/ringsaturn/orb v0.15.0 // indirect
+	// tzf v1.2.5, the latest, reads only this format of its data; 2026d and
+	// later use a new one it can't. Upgrade both together.
 	github.com/ringsaturn/tzf-dist v0.0.2026-c-fix1 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/spf13/pflag v1.0.10 // indirect
@@ -65,7 +67,7 @@ require (
 	github.com/tdewolff/minify/v2 v2.24.20 // indirect
 	github.com/tdewolff/parse/v2 v2.8.17 // indirect
 	github.com/tidwall/geoindex v1.7.0 // indirect
-	github.com/tidwall/rtree v1.10.0 // indirect
+	github.com/tidwall/rtree v1.11.1 // indirect
 	github.com/twpayne/go-geom v1.7.0 // indirect
 	github.com/xo/terminfo v1.2.0 // indirect
 	github.com/yuin/goldmark v1.8.6 // indirect
