@@ -212,7 +212,7 @@ geomancer systems                       # list registered systems
 geomancer suggest QUESTION              # suggest the significator for a question
 
 Global flags: -s/--system (default goldendawn), --json, --color auto|always|never, --symbols unicode|ascii
-cast flags:   -q/--significator N|TITLE, --question TEXT, --pdf FILE, --nephews
+cast flags:   -q/--significator N|TITLE, --question TEXT, --date, --time, --place, --pdf FILE, --nephews
 ```
 
 - **Input:** `internal/cli/input` defines `type MothersSource interface { Mothers() ([4]figure.Figure, error) }`.

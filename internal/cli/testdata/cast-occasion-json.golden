@@ -1,0 +1,124 @@
+{
+  "system": "goldendawn",
+  "circumstances": {
+    "time": "2026-10-15T15:30:00-05:00",
+    "timeZone": "America/Chicago",
+    "zone": "CDT",
+    "place": {
+      "name": "Springfield",
+      "state": "IL",
+      "county": "Sangamon County",
+      "latitude": 39.80172,
+      "longitude": -89.64371
+    }
+  },
+  "shield": {
+    "mothers": [
+      "Amissio",
+      "Fortuna Minor",
+      "Via",
+      "Populus"
+    ],
+    "daughters": [
+      "Cauda Draconis",
+      "Conjunctio",
+      "Amissio",
+      "Albus"
+    ],
+    "nieces": [
+      "Conjunctio",
+      "Via",
+      "Laetitia",
+      "Laetitia"
+    ],
+    "rightWitness": "Carcer",
+    "leftWitness": "Populus",
+    "judge": "Carcer",
+    "judgement": "Fortuna Major"
+  },
+  "square": [
+    {
+      "number": 1,
+      "position": "M2",
+      "figure": "Fortuna Minor",
+      "sign": "Leo",
+      "figureSign": "Leo"
+    },
+    {
+      "number": 2,
+      "position": "D2",
+      "figure": "Conjunctio",
+      "sign": "Virgo",
+      "figureSign": "Virgo"
+    },
+    {
+      "number": 3,
+      "position": "N2",
+      "figure": "Via",
+      "sign": "Libra",
+      "figureSign": "Cancer"
+    },
+    {
+      "number": 4,
+      "position": "M3",
+      "figure": "Via",
+      "sign": "Scorpio",
+      "figureSign": "Cancer"
+    },
+    {
+      "number": 5,
+      "position": "D3",
+      "figure": "Amissio",
+      "sign": "Sagittarius",
+      "figureSign": "Taurus"
+    },
+    {
+      "number": 6,
+      "position": "N3",
+      "figure": "Laetitia",
+      "sign": "Capricorn",
+      "figureSign": "Pisces"
+    },
+    {
+      "number": 7,
+      "position": "M4",
+      "figure": "Populus",
+      "sign": "Aquarius",
+      "figureSign": "Cancer"
+    },
+    {
+      "number": 8,
+      "position": "D4",
+      "figure": "Albus",
+      "sign": "Pisces",
+      "figureSign": "Gemini"
+    },
+    {
+      "number": 9,
+      "position": "N4",
+      "figure": "Laetitia",
+      "sign": "Aries",
+      "figureSign": "Pisces"
+    },
+    {
+      "number": 10,
+      "position": "M1",
+      "figure": "Amissio",
+      "sign": "Taurus",
+      "figureSign": "Taurus"
+    },
+    {
+      "number": 11,
+      "position": "D1",
+      "figure": "Cauda Draconis",
+      "sign": "Gemini"
+    },
+    {
+      "number": 12,
+      "position": "N1",
+      "figure": "Conjunctio",
+      "sign": "Cancer",
+      "figureSign": "Virgo"
+    }
+  ]
+}

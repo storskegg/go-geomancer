@@ -24,7 +24,14 @@ func TestPreview(t *testing.T) {
 	if dir == "" {
 		t.Skip("set REPORT_PREVIEW_DIR to render previews")
 	}
-	when := time.Date(2026, 10, 14, 15, 30, 0, 0, time.Local)
+	chicago, err := time.LoadLocation("America/Chicago")
+	if err != nil {
+		t.Fatal(err)
+	}
+	circumstances := &chart.Circumstances{
+		Time: time.Date(2026, 10, 15, 15, 30, 0, 0, chicago), TimeZone: "America/Chicago", Zone: "CDT",
+		Place: chart.Location{Name: "Springfield", State: "IL", Latitude: 39.80172, Longitude: -89.64371},
+	}
 	for name, sig := range map[string]int{"significator": 10, "plain": 0} {
 		r, err := chart.NewReading([4]figure.Figure{figure.Amissio, figure.FortunaMinor, figure.Via, figure.Populus}, goldendawn.System)
 		if err != nil {
@@ -35,8 +42,9 @@ func TestPreview(t *testing.T) {
 		}
 		if sig != 0 {
 			r.Question = "Will I be offered the position I interviewed for last week, and will it be a good move for me?"
+			r.Circumstances = circumstances
 		}
-		pages, err := Pages(r, Options{Time: when})
+		pages, err := Pages(r, Options{})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -47,7 +55,7 @@ func TestPreview(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		if err := WritePDF(f, r, Options{Time: when}); err != nil {
+		if err := WritePDF(f, r, Options{}); err != nil {
 			t.Fatal(err)
 		}
 		if err := f.Close(); err != nil {

@@ -6,6 +6,7 @@ import (
 	"io"
 	"strconv"
 	"strings"
+	"time"
 
 	tea "charm.land/bubbletea/v2"
 	"charm.land/huh/v2"
@@ -13,6 +14,7 @@ import (
 	"github.com/storskegg/go-geomancer/content"
 	"github.com/storskegg/go-geomancer/figure"
 	"github.com/storskegg/go-geomancer/internal/cli/render"
+	"github.com/storskegg/go-geomancer/place"
 	"github.com/storskegg/go-geomancer/position"
 	"github.com/storskegg/go-geomancer/system"
 )
@@ -21,8 +23,9 @@ import (
 var ErrAborted = errors.New("cancelled")
 
 // Prompt asks for each Mother in turn with a scrollable select. Typing
-// filters the list by name or dot pattern. It can first ask for the system,
-// the question and the significator, in that order.
+// filters the list by name or dot pattern. It can first ask for the system;
+// the date, time and place of the reading; the question; and the
+// significator, in that order.
 type Prompt struct {
 	In  io.Reader
 	Out io.Writer
@@ -34,6 +37,15 @@ type Prompt struct {
 	// of them, starting from *System, and the choice is written to System.
 	System  *system.System
 	Systems []system.System
+	// Occasion, if set, receives the date, time and place of the reading.
+	// AskDate, AskTime and AskPlace choose which to ask for; the others are
+	// already in it, from flags. Places is searched for the place, and Now
+	// gives "today" its meaning. Places is called when the place is first
+	// needed, so loading the index needn't hold up the first prompts.
+	Occasion                   *Occasion
+	AskDate, AskTime, AskPlace bool
+	Places                     func() *place.Index
+	Now                        func() time.Time
 	// If AskQuestion is set, the user may type their question, which is
 	// written to Question.
 	AskQuestion bool
@@ -59,9 +71,41 @@ func (p Prompt) Mothers() ([4]figure.Figure, error) {
 	if p.Accessible {
 		in = byteReader{in}
 	}
+	run := func(groups ...*huh.Group) error {
+		return formError(newForm(groups...).WithAccessible(p.Accessible).WithInput(in).WithOutput(p.Out).Run())
+	}
+
 	var groups []*huh.Group
 	if len(p.Systems) > 0 {
 		groups = append(groups, systemGroup(p.System, p.Systems, p.Accessible))
+	}
+	if o := p.Occasion; o != nil {
+		if p.AskDate {
+			groups = append(groups, dateGroup(o, p.now, p.Accessible))
+		}
+		if p.AskTime {
+			groups = append(groups, timeGroup(o, p.Accessible))
+		}
+		if p.AskPlace {
+			groups = append(groups, placeGroup(o, p.Places, p.Accessible))
+		}
+		if p.Accessible {
+			// Accessible forms show every group, so ask which time only if
+			// it's needed, once the place is known.
+			if len(groups) > 0 {
+				if err := run(groups...); err != nil {
+					return m, err
+				}
+				groups = nil
+			}
+			if o.Ambiguous() {
+				if err := run(accessibleZoneGroup(o)); err != nil {
+					return m, err
+				}
+			}
+		} else {
+			groups = append(groups, zoneGroup(o))
+		}
 	}
 	if p.AskQuestion {
 		groups = append(groups, questionGroup(p.Question))
@@ -70,8 +114,7 @@ func (p Prompt) Mothers() ([4]figure.Figure, error) {
 		// Accessible prompts can't change the significator's starting house
 		// once the form is running, so ask what comes before it first.
 		if p.Accessible && p.Suggest != nil && len(groups) > 0 {
-			form := newForm(groups...).WithAccessible(true).WithInput(in).WithOutput(p.Out)
-			if err := formError(form.Run()); err != nil {
+			if err := run(groups...); err != nil {
 				return m, err
 			}
 			groups = nil
@@ -79,8 +122,14 @@ func (p Prompt) Mothers() ([4]figure.Figure, error) {
 		groups = append(groups, significatorGroup(p.Significator, p.Significations, p.Accessible, p.Question, p.Suggest))
 	}
 	groups = append(groups, motherGroups(&m, p.System, p.Accessible)...)
-	form := newForm(groups...).WithAccessible(p.Accessible).WithInput(in).WithOutput(p.Out)
-	return m, formError(form.Run())
+	return m, run(groups...)
+}
+
+func (p Prompt) now() time.Time {
+	if p.Now != nil {
+		return p.Now()
+	}
+	return time.Now()
 }
 
 // formError translates huh's cancellation error to ErrAborted.

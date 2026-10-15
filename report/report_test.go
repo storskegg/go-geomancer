@@ -267,3 +267,31 @@ func TestSignificatorShaded(t *testing.T) {
 		}
 	}
 }
+
+// However long the question, the header leaves room for the Square: the
+// question takes at most two lines.
+func TestHeaderLongQuestion(t *testing.T) {
+	headerBottom := func(q string) float64 {
+		r := reading(t, 10)
+		r.Question = q
+		f, err := loadFonts()
+		if err != nil {
+			t.Fatal(err)
+		}
+		rep := &report{r: r, sys: goldendawn.System, opts: Options{Content: content.Default()}, f: f}
+		c := canvas.New(PageWidth, PageHeight)
+		return rep.header(&page{c: c, ctx: canvas.NewContext(c)})
+	}
+	short := headerBottom("Will it work?")
+	two := headerBottom(strings.Repeat("Will the long question fit? ", 4))
+	long := headerBottom(strings.Repeat("Will the very long question still fit on the page? ", 6)) // 300 characters
+	if long < two-0.5 || two >= short {
+		t.Errorf("header bottoms: one line %.1f, two %.1f, very long %.1f; want the very long no lower than two", short, two, long)
+	}
+	f, _ := loadFonts()
+	rep := &report{f: f}
+	text, _ := rep.questionText("“" + strings.Repeat("word ", 200) + "”")
+	if text.Lines() > questionLines {
+		t.Errorf("%d lines for a huge question", text.Lines())
+	}
+}

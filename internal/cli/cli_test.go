@@ -57,6 +57,8 @@ func TestGolden(t *testing.T) {
 		{"cast-traditional", []string{"cast", "-s", "traditional", "1212", "1122", "1111", "2222"}},
 		{"cast-significator", []string{"cast", "--significator", "partnership", "1212", "1122", "1111", "2222"}},
 		{"cast-question", []string{"cast", "--question", "Will the contract be signed?", "-q", "7", "1212", "1122", "1111", "2222"}},
+		{"cast-occasion", []string{"cast", "--question", "Will the contract be signed?", "-q", "7", "--date", "2026-10-15", "--time", "3:30 pm", "--place", "Springfield, IL", "1212", "1122", "1111", "2222"}},
+		{"cast-occasion-json", []string{"cast", "--json", "--date", "2026-10-15", "--time", "3:30 pm", "--place", "Springfield, IL", "1212", "1122", "1111", "2222"}},
 		{"cast-goldendawn-nephews", []string{"cast", "-s", "goldendawn", "--nephews", "amissio", "fortuna minor", "via", "populus"}},
 		{"cast-json", []string{"cast", "--json", "1212", "1122", "1111", "2222"}},
 		{"cast-ascii", []string{"cast", "--symbols", "ascii", "1212", "1122", "1111", "2222"}},
@@ -138,7 +140,7 @@ func TestSignificatorFlag(t *testing.T) {
 // The prompts go to stderr, leaving stdout with only the reading.
 func TestCastPromptAccessible(t *testing.T) {
 	t.Setenv("ACCESSIBLE", "1")
-	stdout, stderr, err := runWithInput(t, "6\n8\n1\n2\n", "cast", "--json", "--system", "traditional", "--significator", "7", "--question", "Will it?")
+	stdout, stderr, err := runWithInput(t, "6\n8\n1\n2\n", "cast", "--json", "--system", "traditional", "--significator", "7", "--question", "Will it?", "--date", "2026-10-15", "--time", "3:30 pm", "--place", "Springfield, IL")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -152,8 +154,13 @@ func TestCastPromptAccessible(t *testing.T) {
 	if !strings.Contains(stderr, "Mother 1 (M1)") {
 		t.Errorf("stderr lacks the prompt:\n%s", stderr)
 	}
-	if strings.Contains(stderr, "System") || strings.Contains(stderr, "Significator") || strings.Contains(stderr, "Question") {
-		t.Errorf("prompted for the system, question or significator despite the flags:\n%s", stderr)
+	for _, prompt := range []string{"System", "Significator", "Question", "Date", "Time", "Place"} {
+		if strings.Contains(stderr, prompt) {
+			t.Errorf("prompted for %s despite its flag:\n%s", prompt, stderr)
+		}
+	}
+	if c := r.Circumstances; c == nil || c.Place.Label() != "Springfield, IL" || c.Zone != "CDT" {
+		t.Errorf("circumstances = %+v", c)
 	}
 	if r.System != "traditional" || r.Significator != 7 {
 		t.Errorf("system %s, significator %d", r.System, r.Significator)
@@ -163,9 +170,9 @@ func TestCastPromptAccessible(t *testing.T) {
 // Without --system and --significator, both are chosen before the Mothers.
 func TestCastPromptSystem(t *testing.T) {
 	t.Setenv("ACCESSIBLE", "1")
-	// Systems are listed by ID, so 2 is traditional; then the question;
-	// houses are listed in order, so 9 is House 9.
-	stdout, stderr, err := runWithInput(t, "2\nShall I travel?\n9\n6\n8\n1\n2\n", "cast", "--json")
+	// Systems are listed by ID, so 2 is traditional; then the date, time
+	// and place; the question; houses are listed in order, so 9 is House 9.
+	stdout, stderr, err := runWithInput(t, "2\n10/15/2026\n3:30 pm\nSpringfield, IL\nShall I travel?\n9\n6\n8\n1\n2\n", "cast", "--json")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -176,7 +183,10 @@ func TestCastPromptSystem(t *testing.T) {
 	if r.System != "traditional" || r.Question != "Shall I travel?" || r.Significator != 9 || r.Shield.Mothers[0].Name() != "Amissio" || r.Shield.Mothers[3].Name() != "Populus" {
 		t.Errorf("reading = %s, significator %d, mothers %v", r.System, r.Significator, r.Shield.Mothers)
 	}
-	for _, want := range []string{"System", "Question", "Significator", "9. Journeys — long journeys"} {
+	if c := r.Circumstances; c == nil || c.Time.Format("2006-01-02 15:04 MST") != "2026-10-15 15:30 CDT" || c.Place.Label() != "Springfield, IL" {
+		t.Errorf("circumstances = %+v", c)
+	}
+	for _, want := range []string{"System", "Date", "Time", "Place", "Question", "Significator", "9. Journeys — long journeys"} {
 		if !strings.Contains(stderr, want) {
 			t.Errorf("stderr lacks %q:\n%s", want, stderr)
 		}
@@ -341,7 +351,7 @@ func TestCastPDF(t *testing.T) {
 		t.Fatal(err)
 	}
 	// The terminal output is unchanged; the report is extra.
-	if !strings.Contains(stdout, "The Shield") || !strings.Contains(stdout, "Question: “Will it work?”") {
+	if !strings.Contains(stdout, "The Shield") || !strings.Contains(stdout, "Question  “Will it work?”") {
 		t.Errorf("stdout lacks the reading:\n%.200s", stdout)
 	}
 	if stderr != "Wrote the report to "+path+".\n" {
@@ -395,7 +405,7 @@ func TestSuggestCommand(t *testing.T) {
 func TestCastPromptSuggestion(t *testing.T) {
 	t.Setenv("ACCESSIBLE", "1")
 	// The question, Enter to accept the suggestion, then the Mothers.
-	stdout, stderr, err := runWithInput(t, "Will my husband get the job?\n\n6\n8\n1\n2\n", "cast", "--json", "-s", "goldendawn")
+	stdout, stderr, err := runWithInput(t, "Will my husband get the job?\n\n6\n8\n1\n2\n", "cast", "--json", "-s", "goldendawn", "--date", "2026-10-15", "--time", "3:30 pm", "--place", "Springfield, IL")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -411,7 +421,7 @@ func TestCastPromptSuggestion(t *testing.T) {
 	}
 
 	// --question feeds the suggestion too.
-	stdout, _, err = runWithInput(t, "\n6\n8\n1\n2\n", "cast", "--json", "-s", "goldendawn", "--question", "Will we divorce?")
+	stdout, _, err = runWithInput(t, "\n6\n8\n1\n2\n", "cast", "--json", "-s", "goldendawn", "--question", "Will we divorce?", "--date", "2026-10-15", "--time", "3:30 pm", "--place", "Springfield, IL")
 	if err != nil {
 		t.Fatal(err)
 	}

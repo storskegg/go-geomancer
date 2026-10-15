@@ -11,6 +11,7 @@ require (
 	github.com/charmbracelet/x/term v0.2.2
 	github.com/kljensen/snowball v0.10.0
 	github.com/parquet-go/parquet-go v0.32.0
+	github.com/ringsaturn/tzf v1.2.5
 	github.com/spf13/cobra v1.10.2
 	github.com/tdewolff/canvas v0.0.0-20260923214215-09804640d00c
 	golang.org/x/text v0.43.0
@@ -54,6 +55,8 @@ require (
 	github.com/parquet-go/jsonlite v1.5.5 // indirect
 	github.com/pierrec/lz4/v4 v4.1.33 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
+	github.com/ringsaturn/orb v0.15.0 // indirect
+	github.com/ringsaturn/tzf-dist v0.0.2026-c-fix1 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/spf13/pflag v1.0.10 // indirect
 	github.com/srwiley/rasterx v0.0.0-20220730225603-2ab79fcdd4ef // indirect
@@ -61,6 +64,8 @@ require (
 	github.com/tdewolff/font v0.0.0-20261010204837-88a7f6b56918 // indirect
 	github.com/tdewolff/minify/v2 v2.24.20 // indirect
 	github.com/tdewolff/parse/v2 v2.8.17 // indirect
+	github.com/tidwall/geoindex v1.7.0 // indirect
+	github.com/tidwall/rtree v1.10.0 // indirect
 	github.com/twpayne/go-geom v1.7.0 // indirect
 	github.com/xo/terminfo v1.2.0 // indirect
 	github.com/yuin/goldmark v1.8.6 // indirect

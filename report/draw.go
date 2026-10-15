@@ -38,26 +38,58 @@ func (rep *report) header(p *page) float64 {
 	y -= 8
 
 	if q := strings.TrimSpace(rep.r.Question); q != "" {
-		face := rep.f.italic.Face(13, ink)
-		q = "“" + q + "”"
-		rt := canvas.NewRichText(face)
-		rt.WriteString(q)
-		width := balancedWidth(face.TextWidth(q), PageWidth-2*(margin+10))
-		y = p.paragraph(wrap(rt, width, canvas.Center), (PageWidth-width)/2, y) - 3
+		t, width := rep.questionText("“" + q + "”")
+		y = p.paragraph(t, (PageWidth-width)/2, y) - 3
 	}
 
 	meta := []string{rep.sys.Name()}
 	if sig, ok := rep.opts.Content.Signification(rep.r.Significator); ok {
 		meta = append(meta, fmt.Sprintf("Significator: House %d, %s", sig.House, sig.Title))
 	}
-	if !rep.opts.Time.IsZero() {
-		meta = append(meta, rep.opts.Time.Format("2 January 2006, 3:04 pm"))
-	}
 	y -= 2
 	p.text(rep.f.italic, 10.5, muted, PageWidth/2, y, strings.Join(meta, "  ·  "), canvas.Center)
+	if c := rep.r.Circumstances; c != nil {
+		y -= 5
+		p.text(rep.f.italic, 10.5, muted, PageWidth/2, y,
+			c.Time.Format("Monday, 2 January 2006, 3:04 pm MST")+"  ·  "+c.Place.Label(), canvas.Center)
+		y -= 4.5
+		p.text(rep.f.body, 8.5, muted, PageWidth/2, y,
+			c.Place.Coordinates()+"  ·  "+c.TimeZone+" ("+c.UTCOffset()+")", canvas.Center)
+	}
 	y -= 5
 	p.ornament(PageWidth/2, y)
 	return y - 3
+}
+
+// questionLines is the most lines the question may take in the header, so
+// the Square and its legends still fit on the first page.
+const questionLines = 2
+
+// questionText lays out the question in balanced lines, in the largest size
+// from 13pt down to 10pt that fits questionLines; failing that, at 10pt,
+// cut short with an ellipsis. It returns the text and the width it was laid
+// out in, to centre it by.
+func (rep *report) questionText(q string) (*canvas.Text, float64) {
+	maxWidth := PageWidth - 2*(margin+10)
+	lay := func(size float64, s string) (*canvas.Text, float64) {
+		face := rep.f.italic.Face(size, ink)
+		rt := canvas.NewRichText(face)
+		rt.WriteString(s)
+		width := balancedWidth(face.TextWidth(s), maxWidth)
+		return wrap(rt, width, canvas.Center), width
+	}
+	for _, size := range []float64{13, 12, 11, 10} {
+		if t, w := lay(size, q); t.Lines() <= questionLines {
+			return t, w
+		}
+	}
+	r := []rune(q)
+	for n := len(r) - 1; n > 0; n-- {
+		if t, w := lay(10, strings.TrimRight(string(r[:n]), " ,;:")+"…”"); t.Lines() <= questionLines {
+			return t, w
+		}
+	}
+	return lay(10, q)
 }
 
 // balancedWidth returns a width for text of natural width w that, wrapped

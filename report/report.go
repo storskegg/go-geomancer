@@ -6,7 +6,6 @@ package report
 import (
 	"fmt"
 	"io"
-	"time"
 
 	"github.com/tdewolff/canvas"
 	"github.com/tdewolff/canvas/renderers/pdf"
@@ -30,9 +29,6 @@ type Options struct {
 	// Content supplies significations and meanings; nil means
 	// content.Default().
 	Content *content.Set
-	// Time is when the chart was cast, shown in the header; the zero time
-	// omits it.
-	Time time.Time
 	// Nephews calls N1–N4 Nephews rather than Nieces.
 	Nephews bool
 }
