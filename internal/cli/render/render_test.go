@@ -451,9 +451,18 @@ func TestSideMark(t *testing.T) {
 }
 
 func TestSignificatorLine(t *testing.T) {
-	got := plain(Significator(content.Signification{House: 7, Title: "Partnership", Text: "marriage, partners"}))
-	if want := "Significator: House 7 · Partnership — marriage, partners"; got != want {
-		t.Errorf("Significator = %q, want %q", got, want)
+	sig := content.Signification{House: 7, Title: "Partnership", Text: "marriage, partners"}
+	for _, tt := range []struct {
+		matter *chart.Matter
+		want   string
+	}{
+		{nil, "Significator: House 7 · Partnership — marriage, partners"},
+		{&chart.Matter{}, "Significator: House 7 · Partnership — marriage, partners"},
+		{&chart.Matter{Topics: []string{"thieves"}}, "Significator: House 7 · Thieves — marriage, partners"},
+	} {
+		if got := plain(Significator(sig, tt.matter)); got != tt.want {
+			t.Errorf("Significator(%v) = %q, want %q", tt.matter, got, tt.want)
+		}
 	}
 }
 

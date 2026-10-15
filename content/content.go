@@ -110,9 +110,14 @@ type Signification struct {
 	House int    `json:"house"` // 1–12
 	Title string `json:"title"` // a word or two, such as "Partnership"
 	Text  string `json:"text"`  // the matters it covers
-	// Terms are words and phrases that, in a question, point to this house,
-	// weighted 1 (weak) to 3 (strong). Package question matches them.
-	Terms map[string]float64 `json:"terms,omitempty"`
+	// Topics divide the matters among the terms that point to them, so a
+	// question can be placed within the house: "pet" is House 6's "small
+	// animals".
+	Topics []Topic `json:"topics,omitempty"`
+	// Terms are all the topics' terms, words and phrases that, in a
+	// question, point to this house, weighted 1 (weak) to 3 (strong).
+	// Package question matches them.
+	Terms map[string]float64 `json:"-"`
 	// People are the people this house signifies, such as "husband" for
 	// House 7, used to find derived houses: a question about a person's
 	// affairs is counted from that person's house.
@@ -121,6 +126,23 @@ type Signification struct {
 	// such as "faithful" for House 7. They never make a question about a
 	// person's affairs: "Is my boyfriend faithful?" stays in House 7.
 	Qualities []string `json:"qualities,omitempty"`
+}
+
+// Topic is one of the matters a house signifies, such as "small animals"
+// in House 6, with the terms that point to it.
+type Topic struct {
+	Name  string             `json:"name"` // lowercase, as it would appear mid-sentence
+	Terms map[string]float64 `json:"terms"`
+}
+
+// Topic returns the name of the topic term belongs to, or "" if none.
+func (s Signification) Topic(term string) string {
+	for _, t := range s.Topics {
+		if _, ok := t.Terms[term]; ok {
+			return t.Name
+		}
+	}
+	return ""
 }
 
 // Set is the content for one locale.
@@ -206,6 +228,9 @@ func Parse(b []byte) (*Set, error) {
 		case sig.Title == "":
 			return nil, fmt.Errorf("%w: house %d's signification has no title", ErrInvalid, sig.House)
 		}
+		if err := sig.collectTerms(); err != nil {
+			return nil, err
+		}
 		houses[sig.House-1] = true
 		s.significations[sig.House-1] = sig
 	}
@@ -229,6 +254,24 @@ func Parse(b []byte) (*Set, error) {
 		}
 	}
 	return s, nil
+}
+
+// collectTerms fills in Terms from the topics, checking each topic is
+// named and each term is in only one.
+func (sig *Signification) collectTerms() error {
+	sig.Terms = map[string]float64{}
+	for _, t := range sig.Topics {
+		if t.Name == "" {
+			return fmt.Errorf("%w: house %d has a topic with no name", ErrInvalid, sig.House)
+		}
+		for term, w := range t.Terms {
+			if _, dup := sig.Terms[term]; dup {
+				return fmt.Errorf("%w: house %d's term %q is in more than one topic", ErrInvalid, sig.House, term)
+			}
+			sig.Terms[term] = w
+		}
+	}
+	return nil
 }
 
 var defaultSet = sync.OnceValues(func() (*Set, error) { return Load(DefaultLocale) })

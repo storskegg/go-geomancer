@@ -47,6 +47,7 @@ func NewCommand() *cobra.Command {
 		newFigureCommand(&opts),
 		newSystemsCommand(&opts),
 		newSuggestCommand(&opts),
+		newLicenseCommand(&opts),
 	)
 	return root
 }

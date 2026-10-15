@@ -18,6 +18,7 @@ import (
 	"github.com/kljensen/snowball/english"
 	"golang.org/x/text/unicode/norm"
 
+	"github.com/storskegg/go-geomancer/chart"
 	"github.com/storskegg/go-geomancer/content"
 )
 
@@ -28,6 +29,11 @@ type Suggestion struct {
 	// Words are the question's words that point to the house: a word may
 	// match a term directly, or by meaning (see Match).
 	Matches []Match `json:"matches"`
+	// Topics are the parts of the house's signification the matches point
+	// to, most strongly matched first, such as "small animals" in House 6.
+	// For a derived house, they're the subject's topics, in the subject's
+	// own house.
+	Topics []string `json:"topics,omitempty"`
 	// Derived is set when the house is derived from a person's house.
 	Derived *Derivation `json:"derived,omitempty"`
 }
@@ -43,11 +49,27 @@ type Match struct {
 
 // Derivation explains a derived house: the Subject's house counted from the
 // Person's.
-type Derivation struct {
-	Person      int    `json:"person"`      // the person's house
-	Subject     int    `json:"subject"`     // the matter's house, counted from the person's
-	PersonWord  string `json:"personWord"`  // as written, such as "husband"
-	SubjectWord string `json:"subjectWord"` // such as "job"
+type Derivation = chart.Derivation
+
+// Matter returns what the suggestion says the question asks about within
+// its house, or nil if it has no topics.
+func (s Suggestion) Matter() *chart.Matter {
+	if len(s.Topics) == 0 {
+		return nil
+	}
+	return &chart.Matter{Topics: s.Topics, Derived: s.Derived}
+}
+
+// Matter returns what q asks about within house: the matter of q's
+// suggestion for that house, or nil if house wasn't suggested, so it can't
+// be told why it was chosen.
+func (s *Suggester) Matter(q string, house int) *chart.Matter {
+	for _, sg := range s.Suggest(q) {
+		if sg.House == house {
+			return sg.Matter()
+		}
+	}
+	return nil
 }
 
 // Suggester scores questions against a lexicon.
@@ -56,7 +78,14 @@ type Suggester struct {
 	exact     map[string]bool // single-word terms as written
 	people    map[string]int  // stem → house
 	qualities map[string]bool // stems
+	topics    map[houseTerm]string
 	vectors   *vectors
+}
+
+// houseTerm is a lexicon term as written, in its house.
+type houseTerm struct {
+	house int
+	term  string
 }
 
 // term is a lexicon entry, stemmed for matching.
@@ -95,8 +124,13 @@ func New(sigs [12]content.Signification) (*Suggester, error) {
 	if err != nil {
 		return nil, err
 	}
-	s := &Suggester{exact: map[string]bool{}, people: map[string]int{}, qualities: map[string]bool{}, vectors: v}
+	s := &Suggester{exact: map[string]bool{}, people: map[string]int{}, qualities: map[string]bool{}, topics: map[houseTerm]string{}, vectors: v}
 	for _, sig := range sigs {
+		for text := range sig.Terms {
+			if t := sig.Topic(text); t != "" {
+				s.topics[houseTerm{sig.House, text}] = t
+			}
+		}
 		// Terms with the same stems ("buy", "buying") are one term, with the
 		// greater weight.
 		byStems := map[string]int{} // joined stems → index in s.terms
@@ -178,9 +212,11 @@ func (s *Suggester) Suggest(q string) []Suggestion {
 
 	var scores [13]float64
 	var matches [13][]Match
+	var topics [13]topicScores
 	matched := make([]bool, len(content))
 	credit := func(h int, score float64, m Match) {
 		scores[h] += score
+		topics[h].add(s.topics[houseTerm{h, m.Term}], score)
 		for _, prev := range matches[h] {
 			if prev == m {
 				return
@@ -246,7 +282,7 @@ func (s *Suggester) Suggest(q string) []Suggestion {
 	var ranked []Suggestion
 	for h := 1; h <= 12; h++ {
 		if scores[h] >= minScore {
-			ranked = append(ranked, Suggestion{House: h, Score: scores[h], Matches: matches[h]})
+			ranked = append(ranked, Suggestion{House: h, Score: scores[h], Matches: matches[h], Topics: topics[h].ranked()})
 		}
 	}
 	slices.SortStableFunc(ranked, func(a, b Suggestion) int { return cmp.Compare(b.Score, a.Score) })
@@ -312,11 +348,45 @@ func (s *Suggester) derive(words, stems []string, owned []bool, ranked []Suggest
 				House:   derived,
 				Score:   r.Score,
 				Matches: []Match{{Word: words[pi], Term: words[pi]}, m},
+				Topics:  nonEmpty(s.topics[houseTerm{r.House, m.Term}]),
 				Derived: &Derivation{Person: person, Subject: r.House, PersonWord: words[pi], SubjectWord: m.Word},
 			}
 		}
 	}
 	return nil
+}
+
+// topicScores totals the score each topic contributes to a house.
+type topicScores struct {
+	names  []string // in the order first credited, to break ties
+	scores map[string]float64
+}
+
+func (t *topicScores) add(name string, score float64) {
+	if name == "" {
+		return
+	}
+	if t.scores == nil {
+		t.scores = map[string]float64{}
+	}
+	if _, ok := t.scores[name]; !ok {
+		t.names = append(t.names, name)
+	}
+	t.scores[name] += score
+}
+
+// ranked returns the topics, highest scoring first.
+func (t *topicScores) ranked() []string {
+	names := slices.Clone(t.names)
+	slices.SortStableFunc(names, func(a, b string) int { return cmp.Compare(t.scores[b], t.scores[a]) })
+	return names
+}
+
+func nonEmpty(s string) []string {
+	if s == "" {
+		return nil
+	}
+	return []string{s}
 }
 
 // tokens splits text into lowercase words of letters, without accents.

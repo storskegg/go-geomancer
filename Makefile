@@ -40,3 +40,4 @@ vet:
 tidy:
 	go mod tidy
 	go mod vendor
+	go generate ./internal/licenses

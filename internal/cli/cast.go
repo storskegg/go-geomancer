@@ -117,6 +117,9 @@ went back, needs its zone: --time "1:30 am CST".`,
 				return err
 			}
 			reading.Question = strings.TrimSpace(question)
+			if reading.Question != "" && reading.Significator != 0 {
+				reading.Matter = matter(reading.Question, reading.Significator)
+			}
 			if occ != nil {
 				c := occ.Place.Place.Circumstances(occ.Time())
 				reading.Circumstances = &c
@@ -125,7 +128,7 @@ went back, needs its zone: --time "1:30 am CST".`,
 			err = opts.print(cmd, reading, func() string {
 				square := render.Heading("Astrological Square · " + sys.Name())
 				if s, ok := content.Default().Signification(reading.Significator); ok {
-					square += "\n" + render.Significator(s) + "\n" + render.Aspects(reading.Aspects, ropts)
+					square += "\n" + render.Significator(s, reading.Matter) + "\n" + render.Aspects(reading.Aspects, ropts)
 				}
 				var sections []string
 				if head := render.Header(reading.Question, reading.Circumstances); head != "" {

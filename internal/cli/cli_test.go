@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"strings"
 	"testing"
 
@@ -15,6 +16,7 @@ import (
 
 	"github.com/storskegg/go-geomancer/chart"
 	"github.com/storskegg/go-geomancer/internal/cli/input"
+	"github.com/storskegg/go-geomancer/internal/licenses"
 	_ "github.com/storskegg/go-geomancer/system/goldendawn"
 	_ "github.com/storskegg/go-geomancer/system/traditional"
 )
@@ -330,10 +332,35 @@ func TestFiguresJSON(t *testing.T) {
 	}
 }
 
+func TestLicense(t *testing.T) {
+	out, err := execute(t, "license", "--color", "never")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, want := range []string{"Apache-2.0", "github.com/spf13/cobra", "v1.10.2"} {
+		if !strings.Contains(out, want) {
+			t.Errorf("license output lacks %q", want)
+		}
+	}
+
+	out, err = execute(t, "license", "--json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var mods []licenses.Module
+	if err := json.Unmarshal([]byte(out), &mods); err != nil {
+		t.Fatal(err)
+	}
+	if !slices.Equal(mods, licenses.All()) {
+		t.Error("license --json doesn't match licenses.All")
+	}
+}
+
 func TestArgCounts(t *testing.T) {
 	for _, args := range [][]string{
 		{"figures", "extra"},
 		{"systems", "extra"},
+		{"license", "extra"},
 		{"figure"},
 		{"cast", "1", "2", "3", "4", "5"},
 	} {
@@ -416,8 +443,11 @@ func TestCastPromptSuggestion(t *testing.T) {
 	if r.Significator != 4 {
 		t.Errorf("significator = %d, want the suggested 4", r.Significator)
 	}
-	if !strings.Contains(stderr, "Suggested: House 4 · Home, the 10th from the 7th (“husband”, “job”)") {
+	if !strings.Contains(stderr, "Suggested: House 4 · Husband's career, the 10th from the 7th (“husband”, “job”)") {
 		t.Errorf("stderr lacks the suggestion:\n%s", stderr)
+	}
+	if got, want := r.Matter.Label(), "Husband's career (the 10th from the 7th)"; got != want {
+		t.Errorf("matter = %q, want %q", got, want)
 	}
 
 	// --question feeds the suggestion too.
@@ -427,13 +457,5 @@ func TestCastPromptSuggestion(t *testing.T) {
 	}
 	if err := json.Unmarshal([]byte(stdout), &r); err != nil || r.Significator != 7 {
 		t.Errorf("significator = %d, %v; want 7", r.Significator, err)
-	}
-}
-
-func TestOrdinal(t *testing.T) {
-	for n, want := range map[int]string{1: "1st", 2: "2nd", 3: "3rd", 4: "4th", 10: "10th", 11: "11th", 12: "12th", 21: "21st", 22: "22nd", 113: "113th"} {
-		if got := ordinal(n); got != want {
-			t.Errorf("ordinal(%d) = %q, want %q", n, got, want)
-		}
 	}
 }

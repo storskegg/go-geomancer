@@ -127,6 +127,48 @@ func TestSuggestDerived(t *testing.T) {
 	}
 }
 
+// A suggestion names the topics within its house that its words point to,
+// most strongly matched first.
+func TestSuggestTopics(t *testing.T) {
+	s := suggester(t)
+	tests := []struct {
+		q      string
+		house  int
+		topics []string
+	}{
+		{"Should I get a new pet?", 6, []string{"small animals"}},
+		{"Will my fever break?", 6, []string{"sickness"}},
+		{"Will my sick dog recover?", 6, []string{"sickness", "small animals"}},
+		{"Will the contract be signed?", 7, []string{"contracts"}},
+		{"Will my husband get the job?", 4, []string{"career"}}, // the subject's topic
+	}
+	for _, tt := range tests {
+		got := s.Suggest(tt.q)
+		if len(got) == 0 || got[0].House != tt.house || !slices.Equal(got[0].Topics, tt.topics) {
+			t.Errorf("%q: %+v, want house %d with topics %q", tt.q, got, tt.house, tt.topics)
+		}
+	}
+}
+
+func TestMatter(t *testing.T) {
+	s := suggester(t)
+	if got := s.Matter("Should I get a new pet?", 6).Label(); got != "Small animals" {
+		t.Errorf("pet in House 6 = %q", got)
+	}
+	if got := s.Matter("Will my husband get the job?", 4).Label(); got != "Husband's career (the 10th from the 7th)" {
+		t.Errorf("husband's job in House 4 = %q", got)
+	}
+	if got := s.Matter("Will my husband get the job?", 10).Label(); got != "Career" {
+		t.Errorf("husband's job in House 10 = %q", got)
+	}
+	// A house the question doesn't point to, or no question: no matter.
+	for _, q := range []string{"Should I get a new pet?", ""} {
+		if m := s.Matter(q, 7); m != nil {
+			t.Errorf("%q in House 7 = %+v, want nil", q, m)
+		}
+	}
+}
+
 func TestSuggestAtMostTwo(t *testing.T) {
 	s := suggester(t)
 	got := s.Suggest("money marriage career health travel friends prison")

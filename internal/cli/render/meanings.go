@@ -52,7 +52,11 @@ func Meanings(r chart.Reading, c *content.Set, opts Options) string {
 			parts = append(parts, opts.aspectLabel(*f.Aspect))
 		}
 		if sig, ok := c.Signification(f.House); ok {
-			parts = append(parts, mutedStyle.Render(sig.Title))
+			title := sig.Title
+			if s := r.Matter.Subject(); f.Significator && s != "" {
+				title = s
+			}
+			parts = append(parts, mutedStyle.Render(title))
 		}
 
 		fig := r.Square[f.House-1].Figure

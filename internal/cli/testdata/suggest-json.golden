@@ -2,6 +2,9 @@
   {
     "house": 7,
     "title": "Partnership",
+    "topics": [
+      "contracts"
+    ],
     "score": 2,
     "matches": [
       {

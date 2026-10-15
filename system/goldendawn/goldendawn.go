@@ -51,6 +51,8 @@ var signs = map[figure.Figure]zodiac.Sign{
 	figure.Carcer:       zodiac.Capricorn,
 	figure.Tristitia:    zodiac.Aquarius,
 	figure.Laetitia:     zodiac.Pisces,
+	figure.CaputDraconis: zodiac.Virgo,
+	figure.CaudaDraconis: zodiac.Sagittarius,
 }
 
 // elements gives each figure the element of its sign, with Earth for Caput

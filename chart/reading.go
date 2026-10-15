@@ -18,6 +18,9 @@ type Reading struct {
 	// the reading has none. House 1 always signifies the querent. Set it
 	// with SetSignificator.
 	Significator int `json:"significator,omitempty"`
+	// Matter is what the question asks about within the significator's
+	// house, if the question shows it. SetSignificator clears it.
+	Matter *Matter `json:"matter,omitempty"`
 	// Aspects are the houses aspecting the significator's; see
 	// aspect.Houses.
 	Aspects []aspect.House `json:"aspects,omitempty"`
@@ -26,17 +29,17 @@ type Reading struct {
 }
 
 // SetSignificator sets the significator to house n (1–12) and works out the
-// houses aspecting it. n = 0 clears both.
+// houses aspecting it, clearing the Matter. n = 0 clears all three.
 func (r *Reading) SetSignificator(n int) error {
 	if n == 0 {
-		r.Significator, r.Aspects = 0, nil
+		r.Significator, r.Aspects, r.Matter = 0, nil, nil
 		return nil
 	}
 	aspects, err := aspect.Houses(n)
 	if err != nil {
 		return err
 	}
-	r.Significator, r.Aspects = n, aspects
+	r.Significator, r.Aspects, r.Matter = n, aspects, nil
 	return nil
 }
 

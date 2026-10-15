@@ -64,8 +64,8 @@ require (
 	github.com/srwiley/rasterx v0.0.0-20220730225603-2ab79fcdd4ef // indirect
 	github.com/srwiley/scanx v0.0.0-20190309010443-e94503791388 // indirect
 	github.com/tdewolff/font v0.0.0-20261010204837-88a7f6b56918 // indirect
-	github.com/tdewolff/minify/v2 v2.24.20 // indirect
-	github.com/tdewolff/parse/v2 v2.8.17 // indirect
+	github.com/tdewolff/minify/v2 v2.24.21 // indirect
+	github.com/tdewolff/parse/v2 v2.8.18 // indirect
 	github.com/tidwall/geoindex v1.7.0 // indirect
 	github.com/tidwall/rtree v1.11.1 // indirect
 	github.com/twpayne/go-geom v1.7.0 // indirect

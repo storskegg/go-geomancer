@@ -44,7 +44,11 @@ func (rep *report) header(p *page) float64 {
 
 	meta := []string{rep.sys.Name()}
 	if sig, ok := rep.opts.Content.Signification(rep.r.Significator); ok {
-		meta = append(meta, fmt.Sprintf("Significator: House %d, %s", sig.House, sig.Title))
+		title := sig.Title
+		if l := rep.r.Matter.Label(); l != "" {
+			title = l
+		}
+		meta = append(meta, fmt.Sprintf("Significator: House %d, %s", sig.House, title))
 	}
 	y -= 2
 	p.text(rep.f.italic, 10.5, muted, PageWidth/2, y, strings.Join(meta, "  ·  "), canvas.Center)

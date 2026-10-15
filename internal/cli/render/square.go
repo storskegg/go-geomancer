@@ -138,9 +138,15 @@ func Square(sq chart.Square, significator int, opts Options) string {
 	return lipgloss.JoinVertical(lipgloss.Left, rows...) + "\n" + legend
 }
 
-// Significator describes the significator, for display above the Square.
-func Significator(sig content.Signification) string {
-	return labelStyle.Render(fmt.Sprintf("Significator: House %d · %s", sig.House, sig.Title)) +
+// Significator describes the significator, for display above the Square:
+// by what the question asks about within its house, if known, and
+// otherwise by the house's title.
+func Significator(sig content.Signification, m *chart.Matter) string {
+	title := sig.Title
+	if l := m.Label(); l != "" {
+		title = l
+	}
+	return labelStyle.Render(fmt.Sprintf("Significator: House %d · %s", sig.House, title)) +
 		mutedStyle.Render(" — "+sig.Text)
 }
 

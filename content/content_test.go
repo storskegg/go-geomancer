@@ -254,15 +254,27 @@ func TestParseInvalidSignifications(t *testing.T) {
 		return strings.Join(sigs, ",")
 	}
 	tests := map[string]string{
-		"missing":      "[" + without(5) + "]",
-		"duplicate":    "[" + without(0) + `,{"house": 3, "title": "T"}]`,
-		"out of range": "[" + without(12) + `,{"house": 13, "title": "T"}]`,
-		"no title":     "[" + without(12) + `,{"house": 12, "title": ""}]`,
-		"absent":       "[]",
+		"missing":       "[" + without(5) + "]",
+		"duplicate":     "[" + without(0) + `,{"house": 3, "title": "T"}]`,
+		"out of range":  "[" + without(12) + `,{"house": 13, "title": "T"}]`,
+		"no title":      "[" + without(12) + `,{"house": 12, "title": ""}]`,
+		"unnamed topic": "[" + without(12) + `,{"house": 12, "title": "T", "topics": [{"name": "", "terms": {"a": 1}}]}]`,
+		"term in two topics": "[" + without(12) + `,{"house": 12, "title": "T", "topics": [
+			{"name": "x", "terms": {"a": 1}}, {"name": "y", "terms": {"a": 2}}]}]`,
+		"absent": "[]",
 	}
 	for name, sigs := range tests {
 		if _, err := Parse([]byte(fileWith(sigs, figs))); !errors.Is(err, ErrInvalid) {
 			t.Errorf("%s: error = %v, want ErrInvalid", name, err)
+		}
+	}
+}
+
+func TestTopic(t *testing.T) {
+	sig, _ := Default().Signification(6)
+	for term, want := range map[string]string{"pet": "small animals", "fever": "sickness", "nothing": ""} {
+		if got := sig.Topic(term); got != want {
+			t.Errorf("Topic(%q) = %q, want %q", term, got, want)
 		}
 	}
 }
@@ -286,12 +298,22 @@ func TestHouseMeaningsWritten(t *testing.T) {
 	}
 }
 
-// Each house has terms, weighted 1 to 3, and no person is in two houses.
+// Each house has terms, weighted 1 to 3, divided among named topics, and no
+// person is in two houses.
 func TestLexicon(t *testing.T) {
 	people := map[string]int{}
 	for _, sig := range Default().Significations() {
 		if len(sig.Terms) < 20 {
 			t.Errorf("house %d has only %d terms", sig.House, len(sig.Terms))
+		}
+		if len(sig.Topics) < 2 {
+			t.Errorf("house %d has only %d topics", sig.House, len(sig.Topics))
+		}
+		for _, tp := range sig.Topics {
+			if len(tp.Terms) == 0 || strings.ToLower(tp.Name) != tp.Name || strings.Contains(tp.Name, " and ") {
+				// "and" joins two topics in a label: "Sickness and small animals".
+				t.Errorf("house %d topic %q: %d terms; want some, and a lowercase name without \"and\"", sig.House, tp.Name, len(tp.Terms))
+			}
 		}
 		for term, w := range sig.Terms {
 			if w < 1 || w > 3 || strings.TrimSpace(term) != term || strings.ToLower(term) != term {

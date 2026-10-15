@@ -6,33 +6,17 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/storskegg/go-geomancer/chart"
 	"github.com/storskegg/go-geomancer/content"
 	"github.com/storskegg/go-geomancer/internal/cli/render"
 	"github.com/storskegg/go-geomancer/question"
 )
 
-// ordinal returns 1st, 2nd, 3rd, 4th, ….
-func ordinal(n int) string {
-	suffix := "th"
-	switch n % 10 {
-	case 1:
-		suffix = "st"
-	case 2:
-		suffix = "nd"
-	case 3:
-		suffix = "rd"
-	}
-	if n%100 >= 11 && n%100 <= 13 {
-		suffix = "th"
-	}
-	return fmt.Sprintf("%d%s", n, suffix)
-}
-
 // reason explains a suggestion: the words behind it, or for a derived
 // house, how it's counted.
 func reason(s question.Suggestion) string {
 	if d := s.Derived; d != nil {
-		return fmt.Sprintf("the %s from the %s (“%s”, “%s”)", ordinal(d.Subject), ordinal(d.Person), d.PersonWord, d.SubjectWord)
+		return fmt.Sprintf("the %s from the %s (“%s”, “%s”)", chart.Ordinal(d.Subject), chart.Ordinal(d.Person), d.PersonWord, d.SubjectWord)
 	}
 	words := make([]string, len(s.Matches))
 	for i, m := range s.Matches {
@@ -41,14 +25,29 @@ func reason(s question.Suggestion) string {
 	return "from " + strings.Join(words, ", ")
 }
 
-// houseName names a house for a hint: "⑦ Partnership", or in accessible
-// prompts, which number houses themselves, "House 7 · Partnership".
-func houseName(c *content.Set, house int, accessible bool) string {
-	sig, _ := c.Signification(house)
-	if accessible {
-		return fmt.Sprintf("House %d · %s", house, sig.Title)
+// matter returns what question q asks about within house, or nil if q
+// doesn't show it.
+func matter(q string, house int) *chart.Matter { return question.Default().Matter(q, house) }
+
+// title names a suggestion's house by what the question asks about there,
+// such as "Small animals", or failing that by the house's title, such as
+// "Illness".
+func title(c *content.Set, s question.Suggestion) string {
+	if t := s.Matter().Subject(); t != "" {
+		return t
 	}
-	return string(rune('①'+house-1)) + " " + sig.Title
+	sig, _ := c.Signification(s.House)
+	return sig.Title
+}
+
+// houseName names a suggestion's house for a hint: "⑥ Small animals", or
+// in accessible prompts, which number houses themselves, "House 6 · Small
+// animals".
+func houseName(c *content.Set, s question.Suggestion, accessible bool) string {
+	if accessible {
+		return fmt.Sprintf("House %d · %s", s.House, title(c, s))
+	}
+	return string(rune('①'+s.House-1)) + " " + title(c, s)
 }
 
 // suggestHint suggests the significator for the prompt: the house to start
@@ -61,7 +60,7 @@ func suggestHint(q string, accessible bool) (int, string) {
 	c := content.Default()
 	parts := make([]string, len(ss))
 	for i, s := range ss {
-		parts[i] = houseName(c, s.House, accessible) + ", " + reason(s)
+		parts[i] = houseName(c, s, accessible) + ", " + reason(s)
 	}
 	return ss[0].House, "Suggested: " + strings.Join(parts, "; or ") + "."
 }
@@ -69,6 +68,7 @@ func suggestHint(q string, accessible bool) (int, string) {
 type suggestionJSON struct {
 	House   int                  `json:"house"`
 	Title   string               `json:"title"`
+	Topics  []string             `json:"topics,omitempty"`
 	Score   float64              `json:"score"`
 	Matches []question.Match     `json:"matches"`
 	Derived *question.Derivation `json:"derived,omitempty"`
@@ -93,7 +93,7 @@ house of the matter, counted from the person's house.`,
 			out := make([]suggestionJSON, len(ss))
 			for i, s := range ss {
 				sig, _ := c.Signification(s.House)
-				out[i] = suggestionJSON{House: s.House, Title: sig.Title, Score: s.Score, Matches: s.Matches, Derived: s.Derived}
+				out[i] = suggestionJSON{House: s.House, Title: sig.Title, Topics: s.Topics, Score: s.Score, Matches: s.Matches, Derived: s.Derived}
 			}
 			return opts.print(cmd, out, func() string {
 				if len(ss) == 0 {
@@ -101,8 +101,7 @@ house of the matter, counted from the person's house.`,
 				}
 				lines := []string{render.Heading("Suggestions for “" + q + "”")}
 				for i, s := range ss {
-					sig, _ := c.Signification(s.House)
-					lines = append(lines, fmt.Sprintf("  %d. House %d · %s — %s", i+1, s.House, sig.Title, reason(s)))
+					lines = append(lines, fmt.Sprintf("  %d. House %d · %s — %s", i+1, s.House, title(c, s), reason(s)))
 				}
 				return strings.Join(lines, "\n")
 			})

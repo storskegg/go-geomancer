@@ -40,7 +40,11 @@ func (rep *report) reading(p *page, y float64) {
 			parts = append(parts, s)
 		}
 		if sig, ok := rep.opts.Content.Signification(fh.House); ok {
-			parts = append(parts, sig.Title)
+			title := sig.Title
+			if s := rep.r.Matter.Subject(); fh.Significator && s != "" {
+				title = s
+			}
+			parts = append(parts, title)
 		}
 		col := ink
 		if fh.Significator {
