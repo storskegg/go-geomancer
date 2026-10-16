@@ -65,6 +65,15 @@ func Pages(r chart.Reading, opts Options) ([]*canvas.Canvas, error) {
 	p = rep.newPage()
 	y = rep.heading(p, PageHeight-34, "The Shield")
 	y = rep.shield(p, y-6)
+	if r.Sky != nil {
+		// The Reading starts a page, after the timing if it didn't fit
+		// with the heavens.
+		_, _, fitted := rep.heavens(r.Sky)
+		p, y = rep.newPage(), PageHeight-24 // the reading's heading follows the top margin
+		if !fitted && len(r.Timing) > 0 {
+			y = rep.timing(p, r.Timing, PageHeight-34) - 2
+		}
+	}
 	rep.reading(p, y-10)
 
 	canvases := make([]*canvas.Canvas, len(rep.pages))

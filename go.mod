@@ -12,6 +12,8 @@ require (
 	github.com/kljensen/snowball v0.10.0
 	github.com/parquet-go/parquet-go v0.32.0
 	github.com/ringsaturn/tzf v1.2.5
+	github.com/soniakeys/meeus/v3 v3.0.1
+	github.com/soniakeys/unit v1.0.0
 	github.com/spf13/cobra v1.10.2
 	github.com/tdewolff/canvas v0.0.0-20260923214215-09804640d00c
 	golang.org/x/text v0.43.0

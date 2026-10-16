@@ -60,6 +60,10 @@ func (rep *report) header(p *page) float64 {
 		p.text(rep.f.body, 8.5, muted, PageWidth/2, y,
 			c.Place.Coordinates()+"  ·  "+c.TimeZone+" ("+c.UTCOffset()+")", canvas.Center)
 	}
+	if s := rep.r.Sky; s != nil {
+		y -= 5
+		p.text(rep.f.italic, 10.5, muted, PageWidth/2, y, heavensLine(s), canvas.Center)
+	}
 	y -= 5
 	p.ornament(PageWidth/2, y)
 	return y - 3

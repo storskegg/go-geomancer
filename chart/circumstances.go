@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"math"
 	"time"
+
+	"github.com/storskegg/go-geomancer/sky"
 )
 
 // Circumstances are when and where a chart was cast.
@@ -41,6 +43,11 @@ func (l Location) Coordinates() string {
 		ew = "W"
 	}
 	return fmt.Sprintf("%.4f° %s, %.4f° %s", math.Abs(l.Latitude), ns, math.Abs(l.Longitude), ew)
+}
+
+// Sky works out the astrology of the moment and place.
+func (c Circumstances) Sky() (*sky.Sky, error) {
+	return sky.At(c.Time, c.Place.Latitude, c.Place.Longitude)
 }
 
 // UTCOffset writes the offset in effect, such as "UTC−05:00".

@@ -48,6 +48,10 @@ The Mothers may also be given as arguments, each as a dot pattern read
 head to feet ("1212"), as parities ("odd,even,odd,even"), or by name
 ("Amissio", "fortuna-major"). Quote names that contain spaces.
 
+With the date, time and place, the astrology of that moment is shown too:
+where the planets and nodes are, their conditions and aspects, the Moon's
+phase and lunations, and the planetary day and hour.
+
 With --pdf, a printable report is also written to the given file.
 
 Given the Mothers as arguments, the date, time and place come only from
@@ -123,6 +127,10 @@ went back, needs its zone: --time "1:30 am CST".`,
 			if occ != nil {
 				c := occ.Place.Place.Circumstances(occ.Time())
 				reading.Circumstances = &c
+				if reading.Sky, err = c.Sky(); err != nil {
+					return err
+				}
+				reading.Timing = timing(reading, content.Default())
 			}
 
 			err = opts.print(cmd, reading, func() string {
@@ -134,11 +142,19 @@ went back, needs its zone: --time "1:30 am CST".`,
 				if head := render.Header(reading.Question, reading.Circumstances); head != "" {
 					sections = append(sections, head)
 				}
-				return strings.Join(append(sections,
+				sections = append(sections,
 					render.Heading("The Shield"),
 					render.Shield(reading.Shield, ropts),
 					square,
 					render.Square(reading.Square, reading.Significator, ropts),
+				)
+				if reading.Sky != nil {
+					sections = append(sections, render.Heading("The Heavens"), render.Heavens(reading.Sky, ropts))
+				}
+				if len(reading.Timing) > 0 {
+					sections = append(sections, render.Heading("Timing"), render.Timing(reading.Timing, ropts))
+				}
+				return strings.Join(append(sections,
 					render.Heading("Reading"),
 					render.Meanings(reading, content.Default(), ropts),
 				), "\n\n")

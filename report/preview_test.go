@@ -14,6 +14,7 @@ import (
 	"github.com/storskegg/go-geomancer/chart"
 	"github.com/storskegg/go-geomancer/figure"
 	"github.com/storskegg/go-geomancer/system/goldendawn"
+	"github.com/storskegg/go-geomancer/zodiac"
 )
 
 // TestPreview renders sample reports as PNGs and PDFs into the directory in
@@ -43,6 +44,10 @@ func TestPreview(t *testing.T) {
 		if sig != 0 {
 			r.Question = "Will I be offered the position I interviewed for last week, and will it be a good move for me?"
 			r.Circumstances = circumstances
+			if r.Sky, err = circumstances.Sky(); err != nil {
+				t.Fatal(err)
+			}
+			r.Timing = chart.Timing(r.Sky, "career", []zodiac.Planet{zodiac.Sun})
 		}
 		pages, err := Pages(r, Options{})
 		if err != nil {

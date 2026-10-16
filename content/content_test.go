@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/storskegg/go-geomancer/figure"
+	"github.com/storskegg/go-geomancer/zodiac"
 )
 
 func TestEmbeddedLocales(t *testing.T) {
@@ -270,6 +271,26 @@ func TestParseInvalidSignifications(t *testing.T) {
 	}
 }
 
+func TestPlanets(t *testing.T) {
+	house := func(n int) Signification { sig, _ := Default().Signification(n); return sig }
+	tests := []struct {
+		house  int
+		topics []string
+		want   []zodiac.Planet
+	}{
+		{6, []string{"small animals"}, []zodiac.Planet{zodiac.Mercury}},
+		{6, []string{"sickness", "small animals"}, []zodiac.Planet{zodiac.Mars, zodiac.Saturn, zodiac.Mercury}},
+		{6, nil, []zodiac.Planet{zodiac.Mars, zodiac.Saturn}},                // the first topic, sickness
+		{7, []string{"no such topic"}, []zodiac.Planet{zodiac.Venus}},        // marriage
+		{7, []string{"marriage", "partners"}, []zodiac.Planet{zodiac.Venus}}, // without repeats
+	}
+	for _, tt := range tests {
+		if got := house(tt.house).Planets(tt.topics); !slices.Equal(got, tt.want) {
+			t.Errorf("house %d %q: %v, want %v", tt.house, tt.topics, got, tt.want)
+		}
+	}
+}
+
 func TestTopic(t *testing.T) {
 	sig, _ := Default().Signification(6)
 	for term, want := range map[string]string{"pet": "small animals", "fever": "sickness", "nothing": ""} {
@@ -310,6 +331,9 @@ func TestLexicon(t *testing.T) {
 			t.Errorf("house %d has only %d topics", sig.House, len(sig.Topics))
 		}
 		for _, tp := range sig.Topics {
+			if len(tp.Planets) == 0 || slices.ContainsFunc(tp.Planets, func(p zodiac.Planet) bool { return p == zodiac.NorthNode || p == zodiac.SouthNode }) {
+				t.Errorf("house %d topic %q: planets %v; want classical planets", sig.House, tp.Name, tp.Planets)
+			}
 			if len(tp.Terms) == 0 || strings.ToLower(tp.Name) != tp.Name || strings.Contains(tp.Name, " and ") {
 				// "and" joins two topics in a label: "Sickness and small animals".
 				t.Errorf("house %d topic %q: %d terms; want some, and a lowercase name without \"and\"", sig.House, tp.Name, len(tp.Terms))

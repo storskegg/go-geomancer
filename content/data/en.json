@@ -8,6 +8,9 @@
       "topics": [
         {
           "name": "life",
+          "planets": [
+            "Sun"
+          ],
           "terms": {
             "myself": 3,
             "self": 3,
@@ -24,6 +27,10 @@
         },
         {
           "name": "health",
+          "planets": [
+            "Sun",
+            "Moon"
+          ],
           "terms": {
             "health": 2,
             "healthy": 2,
@@ -37,6 +44,9 @@
         },
         {
           "name": "appearance",
+          "planets": [
+            "Venus"
+          ],
           "terms": {
             "appearance": 3,
             "looks": 3
@@ -44,6 +54,10 @@
         },
         {
           "name": "character",
+          "planets": [
+            "Mercury",
+            "Moon"
+          ],
           "terms": {
             "character": 3,
             "personality": 3,
@@ -65,6 +79,9 @@
       "topics": [
         {
           "name": "money",
+          "planets": [
+            "Jupiter"
+          ],
           "terms": {
             "money": 3,
             "cash": 3,
@@ -89,6 +106,9 @@
         },
         {
           "name": "earnings",
+          "planets": [
+            "Jupiter"
+          ],
           "terms": {
             "income": 3,
             "salary": 3,
@@ -104,6 +124,9 @@
         },
         {
           "name": "possessions",
+          "planets": [
+            "Venus"
+          ],
           "terms": {
             "possessions": 3,
             "belongings": 3,
@@ -137,6 +160,9 @@
         },
         {
           "name": "trade",
+          "planets": [
+            "Mercury"
+          ],
           "terms": {
             "profit": 2,
             "price": 2,
@@ -163,6 +189,9 @@
       "topics": [
         {
           "name": "siblings",
+          "planets": [
+            "Mercury"
+          ],
           "terms": {
             "brother": 3,
             "sister": 3,
@@ -173,6 +202,9 @@
         },
         {
           "name": "neighbours",
+          "planets": [
+            "Mercury"
+          ],
           "terms": {
             "neighbour": 3,
             "neighbor": 3,
@@ -182,6 +214,10 @@
         },
         {
           "name": "short journeys",
+          "planets": [
+            "Moon",
+            "Mercury"
+          ],
           "terms": {
             "commute": 2,
             "drive": 2,
@@ -200,6 +236,9 @@
         },
         {
           "name": "letters",
+          "planets": [
+            "Mercury"
+          ],
           "terms": {
             "letter": 3,
             "letters": 3,
@@ -223,6 +262,9 @@
         },
         {
           "name": "news",
+          "planets": [
+            "Mercury"
+          ],
           "terms": {
             "news": 3,
             "rumour": 2,
@@ -232,6 +274,9 @@
         },
         {
           "name": "lessons",
+          "planets": [
+            "Mercury"
+          ],
           "terms": {
             "classes": 2,
             "primary school": 3
@@ -254,6 +299,10 @@
       "topics": [
         {
           "name": "father",
+          "planets": [
+            "Saturn",
+            "Sun"
+          ],
           "terms": {
             "father": 3,
             "dad": 3
@@ -261,6 +310,9 @@
         },
         {
           "name": "family",
+          "planets": [
+            "Moon"
+          ],
           "terms": {
             "family": 2,
             "parents": 2,
@@ -270,6 +322,10 @@
         },
         {
           "name": "house",
+          "planets": [
+            "Moon",
+            "Saturn"
+          ],
           "terms": {
             "home": 3,
             "house": 3,
@@ -302,6 +358,9 @@
         },
         {
           "name": "land",
+          "planets": [
+            "Saturn"
+          ],
           "terms": {
             "land": 3,
             "property": 3,
@@ -314,6 +373,9 @@
         },
         {
           "name": "endings",
+          "planets": [
+            "Saturn"
+          ],
           "terms": {
             "ending": 2,
             "end": 2,
@@ -324,6 +386,9 @@
         },
         {
           "name": "hidden things",
+          "planets": [
+            "Saturn"
+          ],
           "terms": {
             "treasure": 2,
             "buried": 2
@@ -343,6 +408,10 @@
       "topics": [
         {
           "name": "children",
+          "planets": [
+            "Jupiter",
+            "Moon"
+          ],
           "terms": {
             "child": 3,
             "children": 3,
@@ -362,6 +431,10 @@
         },
         {
           "name": "pregnancy",
+          "planets": [
+            "Moon",
+            "Venus"
+          ],
           "terms": {
             "pregnant": 3,
             "pregnancy": 3,
@@ -375,6 +448,9 @@
         },
         {
           "name": "love affairs",
+          "planets": [
+            "Venus"
+          ],
           "terms": {
             "lover": 3,
             "affair": 3,
@@ -390,6 +466,9 @@
         },
         {
           "name": "gambling",
+          "planets": [
+            "Jupiter"
+          ],
           "terms": {
             "gamble": 2,
             "gambling": 2,
@@ -408,6 +487,9 @@
         },
         {
           "name": "pleasure",
+          "planets": [
+            "Venus"
+          ],
           "terms": {
             "fun": 2,
             "pleasure": 2,
@@ -430,6 +512,10 @@
         },
         {
           "name": "gifts",
+          "planets": [
+            "Venus",
+            "Jupiter"
+          ],
           "terms": {
             "gift": 2
           }
@@ -453,6 +539,10 @@
       "topics": [
         {
           "name": "sickness",
+          "planets": [
+            "Mars",
+            "Saturn"
+          ],
           "terms": {
             "ill": 3,
             "illness": 3,
@@ -493,6 +583,9 @@
         },
         {
           "name": "habits",
+          "planets": [
+            "Mercury"
+          ],
           "terms": {
             "routine": 2,
             "diet": 2,
@@ -501,6 +594,9 @@
         },
         {
           "name": "work",
+          "planets": [
+            "Mercury"
+          ],
           "terms": {
             "duties": 1,
             "chores": 1,
@@ -511,6 +607,9 @@
         },
         {
           "name": "servants",
+          "planets": [
+            "Mercury"
+          ],
           "terms": {
             "employee": 2,
             "employees": 2,
@@ -533,6 +632,9 @@
         },
         {
           "name": "small animals",
+          "planets": [
+            "Mercury"
+          ],
           "terms": {
             "pet": 3,
             "pets": 3,
@@ -560,6 +662,9 @@
       "topics": [
         {
           "name": "marriage",
+          "planets": [
+            "Venus"
+          ],
           "terms": {
             "marry": 3,
             "marriage": 3,
@@ -580,6 +685,9 @@
         },
         {
           "name": "partners",
+          "planets": [
+            "Venus"
+          ],
           "terms": {
             "partner": 3,
             "boyfriend": 3,
@@ -605,6 +713,10 @@
         },
         {
           "name": "contracts",
+          "planets": [
+            "Mercury",
+            "Venus"
+          ],
           "terms": {
             "contract": 2,
             "agreement": 2,
@@ -622,6 +734,9 @@
         },
         {
           "name": "lawsuits",
+          "planets": [
+            "Jupiter"
+          ],
           "terms": {
             "lawsuit": 2,
             "sue": 2,
@@ -638,6 +753,9 @@
         },
         {
           "name": "open enemies",
+          "planets": [
+            "Mars"
+          ],
           "terms": {
             "rival": 2,
             "rivals": 2,
@@ -651,6 +769,10 @@
         },
         {
           "name": "thieves",
+          "planets": [
+            "Mercury",
+            "Mars"
+          ],
           "terms": {
             "thief": 2,
             "theft": 2,
@@ -703,6 +825,9 @@
       "topics": [
         {
           "name": "death",
+          "planets": [
+            "Saturn"
+          ],
           "terms": {
             "death": 3,
             "die": 3,
@@ -718,6 +843,9 @@
         },
         {
           "name": "fear",
+          "planets": [
+            "Saturn"
+          ],
           "terms": {
             "fear": 2,
             "afraid": 2,
@@ -728,6 +856,10 @@
         },
         {
           "name": "legacies",
+          "planets": [
+            "Saturn",
+            "Jupiter"
+          ],
           "terms": {
             "inheritance": 3,
             "inherit": 3,
@@ -742,6 +874,9 @@
         },
         {
           "name": "debts",
+          "planets": [
+            "Saturn"
+          ],
           "terms": {
             "debt": 3,
             "debts": 3,
@@ -759,6 +894,9 @@
         },
         {
           "name": "other people's money",
+          "planets": [
+            "Jupiter"
+          ],
           "terms": {
             "insurance": 3,
             "taxes": 3,
@@ -778,6 +916,10 @@
       "topics": [
         {
           "name": "long journeys",
+          "planets": [
+            "Jupiter",
+            "Moon"
+          ],
           "terms": {
             "travel": 3,
             "travelling": 3,
@@ -792,6 +934,9 @@
         },
         {
           "name": "foreign lands",
+          "planets": [
+            "Jupiter"
+          ],
           "terms": {
             "abroad": 3,
             "foreign": 3,
@@ -806,6 +951,9 @@
         },
         {
           "name": "religion",
+          "planets": [
+            "Jupiter"
+          ],
           "terms": {
             "religion": 3,
             "church": 3,
@@ -831,6 +979,10 @@
         },
         {
           "name": "learning",
+          "planets": [
+            "Jupiter",
+            "Mercury"
+          ],
           "terms": {
             "university": 3,
             "college": 3,
@@ -871,6 +1023,9 @@
         },
         {
           "name": "dreams",
+          "planets": [
+            "Moon"
+          ],
           "terms": {
             "dream": 2,
             "dreams": 2,
@@ -896,6 +1051,9 @@
       "topics": [
         {
           "name": "career",
+          "planets": [
+            "Sun"
+          ],
           "terms": {
             "career": 3,
             "job": 3,
@@ -923,6 +1081,10 @@
         },
         {
           "name": "reputation",
+          "planets": [
+            "Sun",
+            "Jupiter"
+          ],
           "terms": {
             "reputation": 3,
             "fame": 3,
@@ -938,6 +1100,9 @@
         },
         {
           "name": "rank",
+          "planets": [
+            "Sun"
+          ],
           "terms": {
             "rank": 2,
             "status": 3,
@@ -947,6 +1112,10 @@
         },
         {
           "name": "authority",
+          "planets": [
+            "Sun",
+            "Jupiter"
+          ],
           "terms": {
             "authority": 2,
             "government": 2,
@@ -967,6 +1136,9 @@
         },
         {
           "name": "employers",
+          "planets": [
+            "Sun"
+          ],
           "terms": {
             "boss": 3,
             "employer": 3,
@@ -979,6 +1151,10 @@
         },
         {
           "name": "the mother",
+          "planets": [
+            "Moon",
+            "Venus"
+          ],
           "terms": {
             "mother": 2,
             "mom": 2,
@@ -1004,6 +1180,10 @@
       "topics": [
         {
           "name": "friends",
+          "planets": [
+            "Venus",
+            "Jupiter"
+          ],
           "terms": {
             "friend": 3,
             "friends": 3,
@@ -1023,6 +1203,9 @@
         },
         {
           "name": "hopes",
+          "planets": [
+            "Jupiter"
+          ],
           "terms": {
             "hope": 3,
             "hopes": 3,
@@ -1038,6 +1221,10 @@
         },
         {
           "name": "patrons",
+          "planets": [
+            "Jupiter",
+            "Sun"
+          ],
           "terms": {
             "patron": 3,
             "sponsor": 3,
@@ -1063,6 +1250,9 @@
       "topics": [
         {
           "name": "secret enemies",
+          "planets": [
+            "Saturn"
+          ],
           "terms": {
             "secret": 3,
             "secrets": 3,
@@ -1077,6 +1267,9 @@
         },
         {
           "name": "imprisonment",
+          "planets": [
+            "Saturn"
+          ],
           "terms": {
             "prison": 3,
             "jail": 3,
@@ -1100,6 +1293,9 @@
         },
         {
           "name": "misfortune",
+          "planets": [
+            "Saturn"
+          ],
           "terms": {
             "misfortune": 2,
             "curse": 2,
@@ -1117,6 +1313,9 @@
         },
         {
           "name": "self-undoing",
+          "planets": [
+            "Saturn"
+          ],
           "terms": {
             "addiction": 2,
             "guilt": 2,
@@ -1126,6 +1325,9 @@
         },
         {
           "name": "large animals",
+          "planets": [
+            "Mars"
+          ],
           "terms": {
             "horse": 3,
             "horses": 3,

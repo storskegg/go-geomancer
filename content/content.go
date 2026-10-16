@@ -20,6 +20,7 @@ import (
 	"sync"
 
 	"github.com/storskegg/go-geomancer/figure"
+	"github.com/storskegg/go-geomancer/zodiac"
 )
 
 // DefaultLocale is the locale used by Default.
@@ -131,8 +132,34 @@ type Signification struct {
 // Topic is one of the matters a house signifies, such as "small animals"
 // in House 6, with the terms that point to it.
 type Topic struct {
-	Name  string             `json:"name"` // lowercase, as it would appear mid-sentence
-	Terms map[string]float64 `json:"terms"`
+	Name string `json:"name"` // lowercase, as it would appear mid-sentence
+	// Planets are the matter's natural significators, such as Venus for
+	// marriage: an hour of one of them suits a question about it.
+	Planets []zodiac.Planet    `json:"planets,omitempty"`
+	Terms   map[string]float64 `json:"terms"`
+}
+
+// Planets returns the natural significators of the named topics, without
+// repeats; or, if none of them is the house's, those of its first topic,
+// its principal matter.
+func (s Signification) Planets(topics []string) []zodiac.Planet {
+	var out []zodiac.Planet
+	for _, name := range topics {
+		for _, t := range s.Topics {
+			if t.Name != name {
+				continue
+			}
+			for _, p := range t.Planets {
+				if !slices.Contains(out, p) {
+					out = append(out, p)
+				}
+			}
+		}
+	}
+	if len(out) == 0 && len(s.Topics) > 0 {
+		out = slices.Clone(s.Topics[0].Planets)
+	}
+	return out
 }
 
 // Topic returns the name of the topic term belongs to, or "" if none.

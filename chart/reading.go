@@ -3,6 +3,7 @@ package chart
 import (
 	"github.com/storskegg/go-geomancer/aspect"
 	"github.com/storskegg/go-geomancer/figure"
+	"github.com/storskegg/go-geomancer/sky"
 	"github.com/storskegg/go-geomancer/system"
 )
 
@@ -14,6 +15,10 @@ type Reading struct {
 	Question string `json:"question,omitempty"`
 	// Circumstances are when and where the chart was cast, if known.
 	Circumstances *Circumstances `json:"circumstances,omitempty"`
+	// Sky is the astrology of that moment and place, if known.
+	Sky *sky.Sky `json:"sky,omitempty"`
+	// Timing judges that moment against the matter; see Timing.
+	Timing []Judgement `json:"timing,omitempty"`
 	// Significator is the house (1–12) of the matter asked about, or 0 if
 	// the reading has none. House 1 always signifies the querent. Set it
 	// with SetSignificator.

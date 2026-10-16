@@ -12,6 +12,193 @@
       "longitude": -89.64371
     }
   },
+  "sky": {
+    "time": "2026-10-15T15:30:00-05:00",
+    "bodies": [
+      {
+        "planet": "Sun",
+        "longitude": 202.50363411993266,
+        "sign": "Libra",
+        "speed": 0.9914528955210782,
+        "dignities": [
+          "Fall"
+        ]
+      },
+      {
+        "planet": "Moon",
+        "longitude": 261.85454477879136,
+        "sign": "Sagittarius",
+        "speed": 11.918974095107782,
+        "dignities": [
+          "Peregrine"
+        ]
+      },
+      {
+        "planet": "Mercury",
+        "longitude": 227.1800834970571,
+        "sign": "Scorpio",
+        "speed": 0.7990849322665732,
+        "dignities": [
+          "Peregrine"
+        ]
+      },
+      {
+        "planet": "Venus",
+        "longitude": 215.42467497514798,
+        "sign": "Scorpio",
+        "speed": -0.4723302816261818,
+        "retrograde": true,
+        "dignities": [
+          "Detriment"
+        ],
+        "solar": "Under the beams"
+      },
+      {
+        "planet": "Mars",
+        "longitude": 130.10711489218826,
+        "sign": "Leo",
+        "speed": 0.5492813875129792,
+        "dignities": [
+          "Peregrine"
+        ]
+      },
+      {
+        "planet": "Jupiter",
+        "longitude": 142.08081744690188,
+        "sign": "Leo",
+        "speed": 0.1550004163928914,
+        "dignities": [
+          "Peregrine"
+        ]
+      },
+      {
+        "planet": "Saturn",
+        "longitude": 10.420477520162304,
+        "sign": "Aries",
+        "speed": -0.07590856551489085,
+        "retrograde": true,
+        "dignities": [
+          "Fall"
+        ]
+      },
+      {
+        "planet": "North Node",
+        "longitude": 326.9262532815266,
+        "sign": "Aquarius",
+        "speed": -0.05295373497529208
+      },
+      {
+        "planet": "South Node",
+        "longitude": 146.9262532815266,
+        "sign": "Leo",
+        "speed": -0.05295373497590274
+      }
+    ],
+    "aspects": [
+      {
+        "bodies": [
+          "Moon",
+          "Jupiter"
+        ],
+        "kind": "Trine",
+        "orb": 0.22627266811047445,
+        "applying": false
+      },
+      {
+        "bodies": [
+          "Mars",
+          "Saturn"
+        ],
+        "kind": "Trine",
+        "orb": 0.31336262797402625,
+        "applying": true
+      },
+      {
+        "bodies": [
+          "Sun",
+          "Jupiter"
+        ],
+        "kind": "Sextile",
+        "orb": 0.42281667303079146,
+        "applying": false
+      },
+      {
+        "bodies": [
+          "Sun",
+          "Moon"
+        ],
+        "kind": "Sextile",
+        "orb": 0.6490893411412659,
+        "applying": true
+      },
+      {
+        "bodies": [
+          "Venus",
+          "Mars"
+        ],
+        "kind": "Square",
+        "orb": 4.682439917040262,
+        "applying": false
+      },
+      {
+        "bodies": [
+          "Mercury",
+          "Jupiter"
+        ],
+        "kind": "Square",
+        "orb": 4.900733949844741,
+        "applying": true
+      },
+      {
+        "bodies": [
+          "Mercury",
+          "Mars"
+        ],
+        "kind": "Square",
+        "orb": 7.072968604868856,
+        "applying": false
+      }
+    ],
+    "moon": {
+      "phase": "Crescent",
+      "elongation": 59.35091065885873,
+      "illuminated": 0.24611476936513438,
+      "previousNew": "2026-10-10T10:49:56-05:00",
+      "previousFull": "2026-09-26T11:48:57-05:00",
+      "nextNew": "2026-11-09T01:01:57-06:00",
+      "nextFull": "2026-10-25T23:11:43-05:00",
+      "leavesSign": "2026-10-16T07:56:57-05:00",
+      "nextAspect": {
+        "planet": "Jupiter",
+        "kind": "Trine",
+        "exact": "2026-10-15T15:57:53-05:00"
+      }
+    },
+    "day": {
+      "ruler": "Jupiter",
+      "sunrise": "2026-10-15T07:09:00-05:00",
+      "sunset": "2026-10-15T18:19:02-05:00",
+      "nextSunrise": "2026-10-16T07:10:02-05:00",
+      "hour": {
+        "ruler": "Mars",
+        "number": 9,
+        "start": "2026-10-15T14:35:41-05:00",
+        "end": "2026-10-15T15:31:31-05:00"
+      }
+    }
+  },
+  "timing": [
+    {
+      "about": "Moon",
+      "effect": "helps",
+      "text": "The Moon's next aspect is a trine to Jupiter, exact at 3:57 pm Thursday. A benefic, well met: a good sign for the matter."
+    },
+    {
+      "about": "Moon",
+      "effect": "helps",
+      "text": "The Moon is waxing (crescent, 25% lit): a time of increase, favouring growth and new undertakings."
+    }
+  ],
   "shield": {
     "mothers": [
       "Amissio",
@@ -111,7 +298,8 @@
       "number": 11,
       "position": "D1",
       "figure": "Cauda Draconis",
-      "sign": "Gemini"
+      "sign": "Gemini",
+      "figureSign": "Sagittarius"
     },
     {
       "number": 12,

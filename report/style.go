@@ -66,6 +66,7 @@ var (
 	accent    = rgb(0x7A1F1F) // the significator, oxblood
 	stressful = rgb(0x8E2C2C) // Opposition, Square
 	easing    = rgb(0x4E6B3A) // Trine, Sextile
+	mixed     = rgb(0xA8822C) // a mixed judgement of the timing, ochre
 
 	// elementColours is indexed by zodiac.Element: Fire, Air, Water, Earth.
 	elementColours = [4]color.RGBA{rgb(0xA33A2A), rgb(0xA8822C), rgb(0x2F5B7C), rgb(0x4E6B3A)}

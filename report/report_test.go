@@ -7,6 +7,7 @@ import (
 	"math"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/tdewolff/canvas"
 	"github.com/tdewolff/canvas/renderers/rasterizer"
@@ -311,5 +312,55 @@ func TestHeaderLongQuestion(t *testing.T) {
 	text, _ := rep.questionText("“" + strings.Repeat("word ", 200) + "”")
 	if text.Lines() > questionLines {
 		t.Errorf("%d lines for a huge question", text.Lines())
+	}
+}
+
+// With the sky known, the report gains a page for it, after the Shield, and
+// a line in the header.
+func TestHeavensPage(t *testing.T) {
+	r := reading(t, 10)
+	without, err := Pages(r, Options{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	loc, err := time.LoadLocation("America/Chicago")
+	if err != nil {
+		t.Fatal(err)
+	}
+	c := chart.Circumstances{Time: time.Date(2026, 10, 15, 13, 14, 0, 0, loc), Place: chart.Location{Latitude: 43.0731, Longitude: -89.4012}}
+	if r.Sky, err = c.Sky(); err != nil {
+		t.Fatal(err)
+	}
+	with, err := Pages(r, Options{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(with) != len(without)+1 {
+		t.Errorf("%d pages with the sky, %d without", len(with), len(without))
+	}
+	if got, want := heavensLine(r.Sky), "Day of Jupiter  ·  Hour of Saturn  ·  Crescent Moon in Sagittarius"; got != want {
+		t.Errorf("header line = %q, want %q", got, want)
+	}
+	lines := heavensSummary(r.Sky)
+	if len(lines) != 4 || lines[1] != "The hour of Saturn, the 7th of the day, 12:43 pm–1:38 pm" {
+		t.Errorf("summary = %q", lines)
+	}
+}
+
+func TestHeavensSummaryNoHour(t *testing.T) {
+	loc, err := time.LoadLocation("America/Anchorage")
+	if err != nil {
+		t.Fatal(err)
+	}
+	c := chart.Circumstances{Time: time.Date(2026, 12, 21, 12, 0, 0, 0, loc), Place: chart.Location{Latitude: 71.2906, Longitude: -156.7886}}
+	s, err := c.Sky()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := heavensLine(s); !strings.HasPrefix(got, "Day of the Moon  ·  ") || strings.Contains(got, "Hour") {
+		t.Errorf("header line = %q", got)
+	}
+	if lines := heavensSummary(s); lines[0] != "The day of the Moon  ·  no planetary hour: the Sun doesn't rise here on this date" {
+		t.Errorf("summary = %q", lines)
 	}
 }
