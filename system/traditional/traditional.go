@@ -31,7 +31,7 @@ var System system.System = &system.Mapping{
 
 // signs gives each figure its zodiacal sign.
 //
-// Unlike the Golden Dawn table, this gives Caput and Cauda Draconis signs, so
+// Like the Golden Dawn table, this gives Caput and Cauda Draconis signs, so
 // the Astrological Square always has signs under this system.
 //
 // For reference, the candidate table first proposed here, recalled from

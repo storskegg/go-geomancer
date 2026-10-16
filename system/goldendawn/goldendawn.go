@@ -29,28 +29,27 @@ var System system.System = &system.Mapping{
 	Planets:  planets,
 }
 
-// signs gives each figure the sign ruled by its planet, one figure per sign
-// with the Moon's and the Sun's pairs sharing Cancer and Leo.
+// signs gives each figure the sign ruled by its planet, with the Moon's and
+// the Sun's pairs sharing Cancer and Leo. Caput Draconis is given Virgo and
+// Cauda Draconis Sagittarius, as in the Traditional table, so the
+// Astrological Square always has signs under this system.
 //
-// TODO: verify against the preferred Golden Dawn source. Caput Draconis and
-// Cauda Draconis have no sign (they correspond to the lunar nodes; see
-// planets); when one falls in the 1st House the Astrological Square has no
-// signs.
+// TODO: verify against the preferred Golden Dawn source.
 var signs = map[figure.Figure]zodiac.Sign{
-	figure.Puer:         zodiac.Aries,
-	figure.Amissio:      zodiac.Taurus,
-	figure.Albus:        zodiac.Gemini,
-	figure.Populus:      zodiac.Cancer,
-	figure.Via:          zodiac.Cancer,
-	figure.FortunaMajor: zodiac.Leo,
-	figure.FortunaMinor: zodiac.Leo,
-	figure.Conjunctio:   zodiac.Virgo,
-	figure.Puella:       zodiac.Libra,
-	figure.Rubeus:       zodiac.Scorpio,
-	figure.Acquisitio:   zodiac.Sagittarius,
-	figure.Carcer:       zodiac.Capricorn,
-	figure.Tristitia:    zodiac.Aquarius,
-	figure.Laetitia:     zodiac.Pisces,
+	figure.Puer:          zodiac.Aries,
+	figure.Amissio:       zodiac.Taurus,
+	figure.Albus:         zodiac.Gemini,
+	figure.Populus:       zodiac.Cancer,
+	figure.Via:           zodiac.Cancer,
+	figure.FortunaMajor:  zodiac.Leo,
+	figure.FortunaMinor:  zodiac.Leo,
+	figure.Conjunctio:    zodiac.Virgo,
+	figure.Puella:        zodiac.Libra,
+	figure.Rubeus:        zodiac.Scorpio,
+	figure.Acquisitio:    zodiac.Sagittarius,
+	figure.Carcer:        zodiac.Capricorn,
+	figure.Tristitia:     zodiac.Aquarius,
+	figure.Laetitia:      zodiac.Pisces,
 	figure.CaputDraconis: zodiac.Virgo,
 	figure.CaudaDraconis: zodiac.Sagittarius,
 }

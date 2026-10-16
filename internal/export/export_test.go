@@ -366,8 +366,8 @@ func TestSQLite(t *testing.T) {
 	if got := queryInt(t, db, "SELECT house FROM system_houses WHERE system_id = 'goldendawn' AND position = 'M1'"); got != 10 {
 		t.Errorf("Golden Dawn M1 in house %d, want 10", got)
 	}
-	if got := queryInt(t, db, "SELECT count(*) FROM system_figures WHERE system_id = 'goldendawn' AND sign_id IS NULL"); got != 2 {
-		t.Errorf("%d Golden Dawn figures without signs, want 2 (the nodes)", got)
+	if got := queryInt(t, db, "SELECT count(*) FROM system_figures WHERE system_id = 'goldendawn' AND sign_id IS NULL"); got != 0 {
+		t.Errorf("%d Golden Dawn figures without signs, want 0", got)
 	}
 	var node string
 	if err := db.QueryRow("SELECT planet FROM system_figures WHERE system_id = 'goldendawn' AND figure_id = ?", int(figure.CaputDraconis)).Scan(&node); err != nil || node != "North Node" {

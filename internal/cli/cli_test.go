@@ -325,8 +325,7 @@ func TestFiguresJSON(t *testing.T) {
 		t.Fatalf("%d figures, want 16", len(figs))
 	}
 	for _, f := range figs {
-		node := f.Name == "Caput Draconis" || f.Name == "Cauda Draconis"
-		if (f.Sign == nil) != node || f.Element == nil {
+		if f.Sign == nil || f.Element == nil {
 			t.Errorf("%s: sign %v, element %v", f.Name, f.Sign, f.Element)
 		}
 	}

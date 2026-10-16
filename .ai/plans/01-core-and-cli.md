@@ -195,8 +195,8 @@ Both systems ship with complete tables, each marked `TODO` in the source for ver
 - **Golden Dawn signs:** planetary rulership. Puer–Aries, Amissio–Taurus, Albus–Gemini,
   Populus & Via–Cancer, Fortuna Major & Minor–Leo, Conjunctio–Virgo, Puella–Libra,
   Rubeus–Scorpio, Acquisitio–Sagittarius, Carcer–Capricorn, Tristitia–Aquarius,
-  Laetitia–Pisces. Caput and Cauda Draconis have no sign, so when either is in the 1st House
-  the Square has no signs.
+  Laetitia–Pisces; Caput Draconis–Virgo and Cauda Draconis–Sagittarius, as in Traditional, so
+  the Square always has signs.
 - **Golden Dawn elements:** the element of each figure's sign, with Caput Draconis = Earth and
   Cauda Draconis = Fire. These were derived, not taken from a published table.
 - **Traditional:** copies of both Golden Dawn tables until the traditional source is chosen.
@@ -294,7 +294,8 @@ Milestones 1–6 are complete.
 1. Verify the provisional sign and element tables (see above), especially Traditional.
 2. Confirm the assumptions above: Figure/Position terms, JM in the Shield.
 3. Mothers input methods beyond the prompt and arguments. *(not blocking)*
-4. House signs when Caput or Cauda Draconis is in the 1st House. Currently no house gets a sign.
+4. ~~House signs when Caput or Cauda Draconis is in the 1st House.~~ Settled: Golden Dawn gives
+   them Virgo and Sagittarius.
 5. Review the draft meanings of each figure in each house (`content/data/en.json`, 192 entries).
    They're original summaries from each figure's traditional character, not taken from a source.
    Rubeus and Cauda Draconis in House 1 note that the chart is traditionally not to be judged.

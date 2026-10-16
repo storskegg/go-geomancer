@@ -73,10 +73,10 @@ func TestFigures(t *testing.T) {
 			t.Errorf("table lacks %v (%s)", f, f.Pattern())
 		}
 	}
-	// Golden Dawn gives Caput Draconis no sign: its row shows a dash.
+	// Golden Dawn gives Caput Draconis Virgo.
 	for line := range strings.SplitSeq(plain(Figures(goldendawn.System)), "\n") {
-		if strings.Contains(line, "Caput Draconis") && !strings.Contains(line, "│ —") {
-			t.Errorf("Caput Draconis row lacks a dash: %q", line)
+		if strings.Contains(line, "Caput Draconis") && !strings.Contains(line, "│ Virgo") {
+			t.Errorf("Caput Draconis row lacks its sign: %q", line)
 		}
 	}
 }
@@ -182,7 +182,7 @@ func TestUnmappedPlanet(t *testing.T) {
 	if out := plain(Figure(figure.Puer, bare, content.Entry{Figure: figure.Puer})); !strings.Contains(out, "Planet    —") {
 		t.Errorf("detail lacks an unmapped planet:\n%s", out)
 	}
-	if out := plain(Figure(figure.CaputDraconis, goldendawn.System, content.Entry{})); !strings.Contains(out, "Planet    North Node") || !strings.Contains(out, "Sign      —") {
+	if out := plain(Figure(figure.CaputDraconis, goldendawn.System, content.Entry{})); !strings.Contains(out, "Planet    North Node") || !strings.Contains(out, "Sign      Virgo") {
 		t.Errorf("Caput Draconis detail:\n%s", out)
 	}
 }
